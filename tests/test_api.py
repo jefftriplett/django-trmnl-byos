@@ -165,3 +165,32 @@ def test_refresh_rate_is_always_an_integer(client, device, single):
     shown = display(client, device)
     for body in (unknown, rendering, shown):
         assert isinstance(body["refresh_rate"], int), body
+
+
+def test_current_screen_does_not_advance(client, device, single, fluid):
+    fake_render(single, data=b"one")
+    fake_render(fluid, data=b"two")
+    shown = display(client, device)
+    device.refresh_from_db()
+    seen_at, position = device.last_seen_at, device.playlist_position
+    for path in ("/api/current_screen", "/api/display/current/"):
+        body = client.get(path, HTTP_ACCESS_TOKEN=device.api_key).json()
+        assert body["status"] == 200
+        assert body["image_url"] == shown["image_url"]
+        assert body["filename"] == shown["filename"]
+        assert isinstance(body["refresh_rate"], int)
+        assert body["rendered_at"]
+    device.refresh_from_db()
+    assert (device.last_seen_at, device.playlist_position) == (seen_at, position)
+
+
+def test_current_screen_before_anything_is_shown(client, device):
+    body = client.get("/api/current_screen", HTTP_ACCESS_TOKEN=device.api_key).json()
+    assert body["status"] == 200
+    assert body["image_url"].endswith("/rendering.png")
+    assert body["filename"] is None and body["rendered_at"] is None
+
+
+def test_current_screen_unknown_token(client):
+    assert client.get("/api/current_screen", HTTP_ACCESS_TOKEN="nope").json()["status"] == 404
+    assert client.get("/api/current_screen").json()["status"] == 404

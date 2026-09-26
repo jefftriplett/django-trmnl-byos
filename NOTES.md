@@ -478,7 +478,7 @@ Sources: https://docs.trmnl.com/go/private-api/introduction and https://docs.trm
 |---|---|---|
 | `GET /api/setup` | ✅ | |
 | `GET /api/display` (advances the playlist) | ✅ | `refresh_rate` is an integer (matches TRMNL's spec). No firmware updates or special functions. |
-| `GET /api/current_screen` (current screen, no advance) | ❌ | For mirrors/BYOD clients; easy to add from `Device.last_render`. |
+| `GET /api/current_screen` (current screen, no advance) | ✅ | Also at `/api/display/current` (TRMNL's newer name). Doesn't advance the playlist or record telemetry. |
 | `POST /api/log` | ✅ | |
 | Plugin Data API ("Plugin Merge" into a private plugin) | ❌ | |
 | Account API (`Authorization: Bearer user_…`; devices, playlists, plugin settings) | 🟡 | No REST API; the same jobs are done in the admin and the `/trmnl/` pages. |

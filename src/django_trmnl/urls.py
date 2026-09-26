@@ -14,6 +14,8 @@ urlpatterns = [
     re_path(r"^api/setup/?$", views.setup, name="setup"),
     re_path(r"^api/display/?$", views.display, name="display"),
     re_path(r"^api/log/?$", views.log, name="log"),
+    re_path(r"^api/current_screen/?$", views.current_screen, name="current-screen"),
+    re_path(r"^api/display/current/?$", views.current_screen, name="display-current"),
     path("api/images/<uuid:pk>.<str:extension>", views.image, name="image"),
     path(
         "api/placeholder/<str:friendly_id>/<str:state>.<str:extension>",

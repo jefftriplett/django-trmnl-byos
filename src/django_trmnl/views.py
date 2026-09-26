@@ -240,6 +240,37 @@ def display(request):
     )
 
 
+@require_GET
+def current_screen(request):
+    """What the device is showing right now, without advancing its playlist.
+
+    For mirrors and BYOD clients (Kindle, Kobo, a browser extension). Matches
+    trmnl.com's ``/api/current_screen`` and ``/api/display/current``. It doesn't
+    record telemetry: the caller isn't necessarily the device.
+    """
+    device = authenticate(request)
+    if device is None:
+        return JsonResponse({"status": 404, "error": "Device not found"})
+    render = device.last_render
+    if render is None:
+        image_url = placeholder_url(request, device, "welcome" if device.playlist_id is None else "rendering")
+        filename = None
+        rendered_at = None
+    else:
+        image_url = absolute_url(request, reverse("django_trmnl:image", args=[render.pk, render.extension]))
+        filename = render.filename
+        rendered_at = render.created_at.isoformat()
+    return JsonResponse(
+        {
+            "status": 200,
+            "refresh_rate": int(device.refresh_rate),
+            "image_url": image_url,
+            "filename": filename,
+            "rendered_at": rendered_at,
+        }
+    )
+
+
 def placeholder_url(request, device, state):
     profile = device.get_profile()
     path = reverse("django_trmnl:placeholder", args=[device.friendly_id, state, profile.image_format])
