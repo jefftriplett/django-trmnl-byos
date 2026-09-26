@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}django-trmnl{% endblock %}</title>
+  <title>{% block title %}django-trmnl-byos{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'django_trmnl_byos/preview.css' %}">
   {% block head %}{% endblock %}
 </head>
@@ -12,7 +12,7 @@
     <nav class="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-6 py-3">
       <a href="{% url 'django_trmnl_byos:preview-index' %}" class="flex items-center gap-2.5 font-bold tracking-tight">
         <span class="grid size-6 place-items-center border-2 border-white text-[10px] leading-none">▦</span>
-        django-trmnl
+        django-trmnl-byos
       </a>
       <a class="text-sm text-white/80 hover:text-white" href="{% url 'django_trmnl_byos:preview-index' %}">Dashboards &amp; devices</a>
       <a class="ml-auto text-sm text-white/80 hover:text-white" href="{% url 'admin:index' %}">Admin →</a>
