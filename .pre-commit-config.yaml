@@ -1,0 +1,89 @@
+default_language_version:
+    python: python3.14
+
+exclude: |
+  (?x)^(
+      .devcontainer/devcontainer.json|
+      .github/contributors.json|
+      .vscode/launch.json|
+      src/django_trmnl/static/.*|
+      staticfiles/.*
+  )$
+
+repos:
+-   repo: https://github.com/pre-commit-ci/pre-commit-ci-config
+    rev: v1.6.1
+    hooks:
+    -   id: check-pre-commit-ci-config
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+    -   id: check-added-large-files
+    -   id: check-case-conflict
+    -   id: check-json
+    -   id: check-merge-conflict
+    -   id: check-symlinks
+    -   id: check-toml
+    -   id: check-yaml
+    -   id: end-of-file-fixer
+    -   id: trailing-whitespace
+-   repo: https://github.com/astral-sh/uv-pre-commit
+    rev: 0.9.17
+    hooks:
+    -   id: uv-lock
+-   repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.0
+    hooks:
+    -   id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+    -   id: ruff-format
+-   repo: https://github.com/docker-compose-linter/pre-commit-dclint
+    rev: v3.1.0
+    hooks:
+    -   id: dclint
+        files: ^(docker-)?compose\.ya?ml$
+        args: [--fix]
+-   repo: https://github.com/asottile/pyupgrade
+    rev: v3.21.2
+    hooks:
+    -   id: pyupgrade
+        alias: autoformat
+        args: [--py312-plus]
+-   repo: https://github.com/adamchainz/django-upgrade
+    rev: 1.29.1
+    hooks:
+    -   id: django-upgrade
+        args: [--target-version, "6.0"]
+        alias: autoformat
+-   repo: https://github.com/adamchainz/djade-pre-commit
+    rev: 1.9.0
+    hooks:
+    -   id: djade
+-   repo: https://github.com/rtts/djhtml
+    rev: 3.0.10
+    hooks:
+    -   id: djhtml
+        entry: djhtml --tabwidth 2
+        alias: autoformat
+    -   id: djcss
+        alias: autoformat
+    -   id: djjs
+        alias: autoformat
+-   repo: local
+    hooks:
+    -   id: rustywind
+        name: rustywind Tailwind CSS class linter
+        language: node
+        additional_dependencies:
+        -   rustywind@latest
+        entry: rustywind
+        args: [--write]
+        types_or: [html]
+-   repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
+    rev: v2.14.0
+    hooks:
+    -   id: pretty-format-toml
+        args: [--autofix]
+        # uv owns uv.lock's formatting and rewrites it on every resolve, so the
+        # two formatters just undo each other and churn thousands of lines.
+        exclude: ^uv\.lock$

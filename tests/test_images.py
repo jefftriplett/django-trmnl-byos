@@ -40,5 +40,5 @@ def test_to_device_image_sizes():
 
 
 def test_placeholder_formats():
-    assert placeholder(PROFILES["og"], "landscape", "Hi", ["there"])[:2] == b"BM"
+    assert placeholder(PROFILES["og"], "landscape", "Hi", ["there"])[:4] == b"\x89PNG"
     assert placeholder(PROFILES["x"], "landscape", "Hi", ["there"])[:4] == b"\x89PNG"

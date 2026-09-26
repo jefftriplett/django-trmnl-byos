@@ -51,10 +51,17 @@ class PluginInstance(models.Model):
         return self.name
 
     def clean(self):
-        from .plugins import registry
+        from .plugins import PluginError, registry
 
         if self.plugin not in registry:
             raise ValidationError({"plugin": f"Unknown plugin {self.plugin!r}."})
+        plugin = registry.get(self.plugin)
+        if not isinstance(self.settings, dict):
+            raise ValidationError({"settings": "Settings must be a JSON object."})
+        try:
+            plugin.clean_settings({**plugin.default_settings, **self.settings})
+        except PluginError as error:
+            raise ValidationError({"settings": str(error)}) from None
 
     def get_plugin(self):
         from .plugins import registry

@@ -1,6 +1,14 @@
 {% extends "django_trmnl/preview/base.html" %}
 {% block title %}{{ device.name }} · django-trmnl{% endblock %}
-{% block head %}<meta http-equiv="refresh" content="30">{% endblock %}
+{% block head %}
+  <script>
+    // Refresh every 30s to mirror the device, but not while someone is using a control.
+    setInterval(function () {
+      var active = document.activeElement;
+      if (!document.hidden && !(active && active.closest("form"))) location.reload();
+    }, 30000);
+  </script>
+{% endblock %}
 {% block content %}
   <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
     <div>
@@ -30,7 +38,7 @@
         {% if device.last_render %}
           <img src="{% url 'django_trmnl:image' device.last_render.pk device.last_render.extension %}" class="frame w-full" alt="{{ device.last_render.dashboard }}">
         {% elif device.last_seen_at %}
-          <p class="text-muted">Showing a status screen (welcome, empty playlist or rendering). Give the device a playlist and keep <code class="code">trmnl_worker</code> running.</p>
+          <p class="text-muted">Showing a status screen (welcome, empty playlist or rendering). Give the device a playlist and keep <code class="code">manage.py qcluster</code> running.</p>
         {% else %}
           <p class="text-muted">This device hasn't checked in yet. Point it at <code class="code">{{ server_url }}</code>.</p>
         {% endif %}
@@ -56,38 +64,106 @@
   </div>
 
   <section class="mb-10">
-    <h3 class="mb-4 text-xl font-bold tracking-tight">Playlist {% if device.playlist %}<span class="font-normal text-muted">· {{ device.playlist }}</span>{% endif %}</h3>
-    {% if items %}
-      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {% for entry in items %}
-          <a href="{% url 'django_trmnl:preview-dashboard' entry.item.dashboard.pk %}?profile={{ device.profile }}&orientation={{ device.orientation }}"
-             class="card block {% if not entry.active %}opacity-50{% endif %} {% if entry.next %}outline-2 outline-offset-4 outline-ink{% endif %}">
-            {% if entry.render %}
-              <img src="{% url 'django_trmnl:image' entry.render.pk entry.render.extension %}" class="aspect-[5/3] w-full border-b border-ink bg-white object-contain" alt="">
-            {% else %}
-              <div class="grid aspect-[5/3] place-items-center border-b border-ink bg-paper text-sm text-muted">not rendered yet</div>
-            {% endif %}
-            <div class="flex items-center justify-between gap-2 px-3 py-2">
-              <span class="truncate font-semibold">{{ entry.item.dashboard }}</span>
-              {% if entry.next %}<span class="chip bg-ink text-white">Next</span>{% elif not entry.active %}<span class="chip">Off now</span>{% endif %}
-            </div>
-          </a>
-        {% endfor %}
+    <div class="mb-4 flex flex-wrap items-end justify-between gap-4">
+      <div>
+        <h3 class="text-xl font-bold tracking-tight">Playlist</h3>
+        {% if shared_with %}
+          <p class="mt-1 text-sm text-muted">
+            Shared with {% for other in shared_with %}{{ other.name }}{% if not forloop.last %}, {% endif %}{% endfor %}. Changes here affect {{ shared_with|length|pluralize:"it,them" }} too.
+          </p>
+        {% endif %}
       </div>
+      <div class="flex flex-wrap items-center gap-3">
+        <form method="post" action="{% url 'django_trmnl:preview-device-playlist' device.pk %}" class="flex items-center gap-2">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="assign">
+          <select name="playlist" class="control" aria-label="Playlist">
+            <option value="">No playlist</option>
+            {% for option in playlists %}<option value="{{ option.pk }}"{% if option.pk == device.playlist_id %} selected{% endif %}>{{ option.name }}</option>{% endfor %}
+          </select>
+          <button type="submit" class="button">Use</button>
+        </form>
+        <form method="post" action="{% url 'django_trmnl:preview-device-playlist' device.pk %}">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="create">
+          <button type="submit" class="button" title="{% if device.playlist %}Copy the current playlist into a new one used only by this device{% else %}Start an empty playlist for this device{% endif %}">
+            {% if device.playlist %}Make a copy for this device{% else %}New playlist{% endif %}
+          </button>
+        </form>
+      </div>
+    </div>
+
+    {% if device.playlist %}
+      <p class="mb-4 text-sm text-muted">
+        <strong class="text-ink">Show next</strong> puts a dashboard on the device at its next check-in{% if next_wake %} (around {{ next_wake|time:"g:i A" }}){% endif %}, or right away if you press the device's button.
+      </p>
+      {% if items %}
+        <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {% for entry in items %}
+            <article class="card flex flex-col {% if entry.next %}outline-2 outline-offset-4 outline-ink{% endif %}">
+              <a href="{% url 'django_trmnl:preview-dashboard' entry.item.dashboard.pk %}?profile={{ device.profile }}&orientation={{ device.orientation }}" class="block {% if not entry.item.enabled %}opacity-40{% elif not entry.active %}opacity-60{% endif %}">
+                {% if entry.render %}
+                  <img src="{% url 'django_trmnl:image' entry.render.pk entry.render.extension %}" class="aspect-[5/3] w-full border-b border-ink bg-white object-contain" alt="">
+                {% else %}
+                  <div class="grid aspect-[5/3] place-items-center border-b border-ink bg-paper text-sm text-muted">not rendered yet</div>
+                {% endif %}
+              </a>
+              <div class="flex items-center justify-between gap-2 px-3 pt-2">
+                <span class="truncate font-semibold">{{ forloop.counter }}. {{ entry.item.dashboard }}</span>
+                {% if entry.next %}<span class="chip bg-ink text-white">Next</span>{% elif not entry.item.enabled %}<span class="chip">Excluded</span>{% elif not entry.active %}<span class="chip">Off now</span>{% endif %}
+              </div>
+              <form method="post" action="{% url 'django_trmnl:preview-device-playlist' device.pk %}" class="mt-auto flex flex-wrap items-center gap-2 px-3 pt-2 pb-3">
+                {% csrf_token %}
+                <input type="hidden" name="item" value="{{ entry.item.pk }}">
+                <button type="submit" name="action" value="show_next" class="button button-primary px-2 py-1 text-sm"{% if entry.next %} disabled{% endif %}>Show next</button>
+                <button type="submit" name="action" value="render" class="button px-2 py-1 text-sm">Render</button>
+                <button type="submit" name="action" value="toggle" class="button px-2 py-1 text-sm">{% if entry.item.enabled %}Exclude{% else %}Include{% endif %}</button>
+                <span class="ml-auto flex gap-1">
+                  <button type="submit" name="action" value="up" class="button px-2 py-1 text-sm" title="Move earlier"{% if forloop.first %} disabled{% endif %}>↑</button>
+                  <button type="submit" name="action" value="down" class="button px-2 py-1 text-sm" title="Move later"{% if forloop.last %} disabled{% endif %}>↓</button>
+                  <button type="submit" name="action" value="remove" class="button px-2 py-1 text-sm" title="Remove from playlist" onclick="return confirm('Remove {{ entry.item.dashboard|escapejs }} from this playlist?')">✕</button>
+                </span>
+              </form>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-muted">This playlist is empty. Add a dashboard below.</p>
+      {% endif %}
+
+      {% if available %}
+        <form method="post" action="{% url 'django_trmnl:preview-device-playlist' device.pk %}" class="mt-6 flex flex-wrap items-center gap-2">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="add">
+          <select name="dashboard" class="control" aria-label="Dashboard to add">
+            {% for dashboard in available %}<option value="{{ dashboard.pk }}">{{ dashboard.name }} ({{ dashboard.layout }})</option>{% endfor %}
+          </select>
+          <button type="submit" class="button">Add to playlist</button>
+        </form>
+      {% endif %}
     {% else %}
-      <p class="text-muted">No playlist. Pick one in the <a class="link" href="{% url 'admin:django_trmnl_device_change' device.pk %}">device settings</a>.</p>
+      <p class="text-muted">No playlist. Pick one above, or start a new one.</p>
     {% endif %}
   </section>
 
   <section>
-    <h3 class="mb-4 text-xl font-bold tracking-tight">Recent logs</h3>
+    <h3 class="mb-4 text-xl font-bold tracking-tight">Recent logs <span class="text-base font-normal text-muted">· what the device reported</span></h3>
     <div class="card overflow-x-auto">
       <table class="data-table">
-        <tr><th>When</th><th>Message</th></tr>
-        {% for log in logs %}
-          <tr><td class="whitespace-nowrap">{{ log.created_at|timesince }} ago</td><td><code class="code">{{ log.message }}</code></td></tr>
+        <tr><th>Received</th><th>Level</th><th>Message</th><th>Source</th><th>Wake</th></tr>
+        {% for entry in log_entries %}
+          <tr>
+            <td class="whitespace-nowrap">{{ entry.received|timesince }} ago</td>
+            <td>{% if entry.level %}<span class="chip {% if entry.level == 'error' %}bg-ink text-white{% endif %}">{{ entry.level }}</span>{% endif %}</td>
+            <td>
+              {{ entry.message }}
+              <details class="mt-1 text-xs text-muted"><summary class="cursor-pointer">details</summary><code class="code">{{ entry.raw }}</code></details>
+            </td>
+            <td class="font-mono text-xs whitespace-nowrap">{{ entry.source }}</td>
+            <td class="text-xs whitespace-nowrap">{{ entry.wake_reason }}</td>
+          </tr>
         {% empty %}
-          <tr><td colspan="2" class="text-muted">No logs. The firmware posts here when something goes wrong.</td></tr>
+          <tr><td colspan="5" class="text-muted">No logs. The firmware posts here when something goes wrong.</td></tr>
         {% endfor %}
       </table>
     </div>

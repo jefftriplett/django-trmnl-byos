@@ -465,3 +465,31 @@ example project:
 - Terminus (Ruby) is the reference for the finer points of API behavior:
   extra headers, sleep mode, firmware updates, and model/size negotiation.
   Check it before finalizing `/api/display`.
+
+---
+
+## 7. TRMNL API coverage (checked 2026-09-26)
+
+Sources: https://docs.trmnl.com/go/private-api/introduction and https://docs.trmnl.com/go/public-api/introduction
+
+### Private API (device API key, `Access-Token` header)
+
+| Endpoint | Us | Notes |
+|---|---|---|
+| `GET /api/setup` | ✅ | |
+| `GET /api/display` (advances the playlist) | ✅ | `refresh_rate` is an integer (matches TRMNL's spec). No firmware updates or special functions. |
+| `GET /api/current_screen` (current screen, no advance) | ❌ | For mirrors/BYOD clients; easy to add from `Device.last_render`. |
+| `POST /api/log` | ✅ | |
+| Plugin Data API ("Plugin Merge" into a private plugin) | ❌ | |
+| Account API (`Authorization: Bearer user_…`; devices, playlists, plugin settings) | 🟡 | No REST API; the same jobs are done in the admin and the `/trmnl/` pages. |
+
+### Public API (no auth)
+
+| Endpoint | Us | Notes |
+|---|---|---|
+| `GET /api/models` | 🟡 | We hardcode 4 profiles matching TRMNL's `og_png`, `og_plus` and `v2`, plus our own 400x300. |
+| `GET /api/palettes` | ❌ | Needed for color panels (e.g. BWRY). |
+| `GET /recipes.json`, `/recipes/{id}.json` | ❌ | Community plugins; Liquid support would let us import them. |
+| `GET /api/categories` | — | Marketplace only. |
+
+Also supported: the private plugin webhook `POST/GET /api/custom_plugins/{uuid}` (replace, `deep_merge`, `stream`).

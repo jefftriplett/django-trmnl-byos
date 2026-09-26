@@ -59,8 +59,8 @@ def test_display_rotates_playlist_and_records_telemetry(client, device, single, 
         for _ in range(3)
     ]
     assert [body["filename"] for body in bodies] == [first.filename, second.filename, first.filename]
-    assert bodies[0]["image_url"] == f"http://testserver/api/images/{first.pk}.bmp"
-    assert [body["refresh_rate"] for body in bodies] == ["900", "300", "900"]
+    assert bodies[0]["image_url"] == f"http://testserver/api/images/{first.pk}.png"
+    assert [body["refresh_rate"] for body in bodies] == [900, 300, 900]
     assert bodies[0]["status"] == 0
     device.refresh_from_db()
     assert (device.battery_voltage, device.rssi, device.firmware_version) == (4.1, -69, "1.6.2")
@@ -88,22 +88,22 @@ def test_display_placeholders(client, device):
     assert body["filename"] == "placeholder-disabled-og"
     image = client.get(body["image_url"].replace("http://testserver", ""))
     assert image.status_code == 200
-    assert image["Content-Type"] == "image/bmp"
+    assert image["Content-Type"] == "image/png"
 
 
 @override_settings(DJANGO_TRMNL={"BASE_URL": "http://trmnl.lan:8000/"})
 def test_base_url_setting(client, device, single):
     render = fake_render(single)
-    assert display(client, device)["image_url"] == f"http://trmnl.lan:8000/api/images/{render.pk}.bmp"
+    assert display(client, device)["image_url"] == f"http://trmnl.lan:8000/api/images/{render.pk}.png"
 
 
 def test_image_endpoint(client, single):
     render = fake_render(single, data=b"BMdata")
-    response = client.get(f"/api/images/{render.pk}.bmp")
+    response = client.get(f"/api/images/{render.pk}.png")
     assert response.status_code == 200
     assert response.content == b"BMdata"
-    assert response["Content-Type"] == "image/bmp"
-    assert client.get(f"/api/images/{render.pk}.png").status_code == 404
+    assert response["Content-Type"] == "image/png"
+    assert client.get(f"/api/images/{render.pk}.bmp").status_code == 404
 
 
 def test_log(client, device):
@@ -154,3 +154,14 @@ def test_display_does_not_adopt_without_auto_provision(client):
     body = client.get("/api/display", HTTP_ID="12:34:56:78:9A:BC", HTTP_ACCESS_TOKEN="abc").json()
     assert body["status"] == 202
     assert not Device.objects.exists()
+
+
+
+def test_refresh_rate_is_always_an_integer(client, device, single):
+    """The firmware and Go clients decode refresh_rate as a number; a string breaks them."""
+    unknown = client.get("/api/display", HTTP_ACCESS_TOKEN="nope", HTTP_ID="00:00:00:00:00:01").json()
+    rendering = display(client, device)  # no image yet → placeholder
+    fake_render(single)
+    shown = display(client, device)
+    for body in (unknown, rendering, shown):
+        assert isinstance(body["refresh_rate"], int), body

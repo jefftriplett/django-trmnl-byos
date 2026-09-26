@@ -34,6 +34,9 @@
   .button {
     @apply inline-flex cursor-pointer items-center gap-2 border border-ink bg-white px-3 py-1.5 font-semibold text-ink shadow-hard-sm transition hover:bg-ink hover:text-white active:translate-x-0.5 active:translate-y-0.5 active:shadow-none;
   }
+  .button:disabled {
+    @apply cursor-default opacity-40 shadow-none hover:bg-white hover:text-ink;
+  }
   .button-primary {
     @apply bg-ink text-white hover:bg-white hover:text-ink;
   }

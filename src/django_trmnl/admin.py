@@ -5,12 +5,13 @@ from django.contrib import admin, messages
 from django.core.exceptions import ValidationError
 from django.forms.models import BaseInlineFormSet
 from django.urls import reverse
-from django.utils.html import format_html
+from django.utils.html import format_html, format_html_join
 
 from . import layouts
 from .models import Dashboard, DashboardCell, Device, DeviceLog, Playlist, PlaylistItem, PluginInstance, Render
 from .plugins import registry
 from .services import refresh_instance
+from .tasks import dashboards_for_instance, enqueue_render
 
 
 def image_tag(render, width=400):
@@ -52,14 +53,25 @@ class PluginInstanceAdmin(admin.ModelAdmin):
         if not obj.pk or obj.plugin not in registry:
             return "Pick a plugin and save; its default settings will be filled in."
         plugin = obj.get_plugin()
+        rows = format_html_join(
+            "",
+            "<tr><td><code>{}</code></td><td><code>{}</code></td><td>{}</td></tr>",
+            (
+                (key, json.dumps(value), plugin.help.get(key, ""))
+                for key, value in plugin.default_settings.items()
+            ),
+        )
         return format_html(
-            "{}<pre>{}</pre>", plugin.description, json.dumps(plugin.default_settings, indent=2)
+            "<p>{}</p><table><tr><th>Setting</th><th>Default</th><th>Meaning</th></tr>{}</table>",
+            plugin.description,
+            rows,
         )
 
     def save_model(self, request, obj, form, change):
         if not obj.settings and obj.plugin in registry:
             obj.settings = dict(registry.get(obj.plugin).default_settings)
         super().save_model(request, obj, form, change)
+        enqueue_render(dashboards_for_instance(obj))
 
     @admin.action(description="Refresh data now (polling plugins)")
     def refresh_now(self, request, queryset):
@@ -122,6 +134,7 @@ class DashboardAdmin(admin.ModelAdmin):
     def save_related(self, request, form, formsets, change):
         super().save_related(request, form, formsets, change)
         form.instance.touch()
+        enqueue_render([form.instance.pk])
 
 
 class PlaylistItemInline(admin.TabularInline):

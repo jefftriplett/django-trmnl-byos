@@ -22,11 +22,21 @@ class ClockPlugin(Plugin):
     name = "Clock"
     description = "The time and date when the screen was rendered."
     template_name = "django_trmnl/plugins/clock.html"
-    default_settings = {"timezone": "", "hour_format": "12"}
+    default_settings = {"timezone": "", "hour_format": "12", "show_timezone": True}
+    help = {
+        "timezone": 'A zone like "America/Chicago", a city like "Chicago", or "Central"/"CST". Blank uses TIME_ZONE.',
+        "hour_format": '"12" or "24".',
+        "show_timezone": "Show the zone abbreviation (CDT, EST, …) under the date.",
+    }
+
+    def clean_settings(self, settings):
+        resolve_timezone(settings.get("timezone", ""))
+        if str(settings.get("hour_format", "12")) not in ("12", "24"):
+            raise PluginError('hour_format must be "12" or "24".')
 
     def get_context(self, instance, size, trmnl):
         context = super().get_context(instance, size, trmnl)
-        now = timezone.localtime(timezone=_zone(context["settings"]["timezone"]))
+        now = timezone.localtime(timezone=resolve_timezone(context["settings"]["timezone"]))
         context["now"] = now
         context["time_format"] = "H:i" if str(context["settings"]["hour_format"]) == "24" else "g:i A"
         return context
@@ -87,36 +97,99 @@ class WeatherPlugin(Plugin):
 
     key = "weather"
     name = "Weather"
-    description = "Current conditions and a 5-day forecast from Open-Meteo."
+    description = "Current conditions and a forecast from Open-Meteo. Set a ZIP code or place name."
     template_name = "django_trmnl/plugins/weather.html"
     polls = True
-    default_settings = {"latitude": 33.749, "longitude": -84.388, "location": "Atlanta", "units": "fahrenheit"}
+    default_settings = {
+        "location": "66044",
+        "country_code": "US",
+        "label": "",
+        "latitude": None,
+        "longitude": None,
+        "units": "fahrenheit",
+        "forecast_days": 5,
+        "show_details": True,
+    }
+    help = {
+        "location": 'ZIP/postal code or place name, e.g. "66044" or "Lawrence, KS".',
+        "country_code": 'Two-letter country code to narrow the search (e.g. "US"); blank searches everywhere.',
+        "label": "Name to show on screen; blank uses the place found.",
+        "latitude": "Set latitude and longitude to skip the location search.",
+        "longitude": "Set latitude and longitude to skip the location search.",
+        "units": '"fahrenheit" or "celsius".',
+        "forecast_days": "Days of forecast to show, 0-7.",
+        "show_details": "Show feels-like, humidity and wind.",
+    }
+
+    def clean_settings(self, settings):
+        if settings.get("units", "fahrenheit") not in ("fahrenheit", "celsius"):
+            raise PluginError('units must be "fahrenheit" or "celsius".')
+        try:
+            days = int(settings.get("forecast_days", 5))
+        except (TypeError, ValueError):
+            raise PluginError("forecast_days must be a number.") from None
+        if not 0 <= days <= 7:
+            raise PluginError("forecast_days must be between 0 and 7.")
+        has_coordinates = settings.get("latitude") not in (None, "") and settings.get("longitude") not in (None, "")
+        if not has_coordinates and not str(settings.get("location", "")).strip():
+            raise PluginError("Set a location (ZIP or place name) or latitude and longitude.")
 
     def get_context(self, instance, size, trmnl):
         context = super().get_context(instance, size, trmnl)
-        # Five days fit a full view or a large screen; smaller cells get three.
+        days = int(context["settings"].get("forecast_days", 5))
+        # Small cells on small screens get at most three days.
         roomy = size == "full" or trmnl.get("device", {}).get("width", 0) > 900
-        context["forecast_days"] = ":5" if roomy else ":3"
+        context["forecast_days"] = f":{days if roomy else min(days, 3)}"
         return context
+
+    def title(self, instance):
+        place = (instance.merge_variables or {}).get("place", {}).get("name")
+        return f"{instance.name} · {place}" if place else instance.name
+
+    def locate(self, settings):
+        """Latitude, longitude and a display name, from settings or Open-Meteo geocoding."""
+        latitude, longitude = settings.get("latitude"), settings.get("longitude")
+        if latitude not in (None, "") and longitude not in (None, ""):
+            return float(latitude), float(longitude), settings.get("label") or f"{latitude}, {longitude}"
+        query = str(settings.get("location", "")).strip()
+        # "Lawrence, KS" → search "Lawrence", then prefer the matching state.
+        name, _, region = (part.strip() for part in query.partition(","))
+        params = {"name": name, "count": 10, "language": "en", "format": "json"}
+        if settings.get("country_code"):
+            params["countryCode"] = settings["country_code"]
+        results = fetch_json(
+            f"https://geocoding-api.open-meteo.com/v1/search?{urllib.parse.urlencode(params)}"
+        ).get("results") or []
+        if region:
+            wanted = {region.lower(), US_STATES.get(region.upper(), "").lower()}
+            results = [result for result in results if str(result.get("admin1", "")).lower() in wanted] or results
+        if not results:
+            raise PluginError(f"Couldn't find a place for {query!r}.")
+        place = results[0]
+        region_name = place.get("admin1") or place.get("country", "")
+        state = STATE_CODES.get(region_name, region_name)
+        return place["latitude"], place["longitude"], settings.get("label") or f"{place['name']}, {state}"
 
     def fetch(self, instance):
         settings = self.settings_for(instance)
+        latitude, longitude, place_name = self.locate(settings)
         query = urllib.parse.urlencode(
             {
-                "latitude": settings["latitude"],
-                "longitude": settings["longitude"],
+                "latitude": latitude,
+                "longitude": longitude,
                 "current": "temperature_2m,apparent_temperature,weather_code,wind_speed_10m,relative_humidity_2m",
                 "daily": "temperature_2m_max,temperature_2m_min,weather_code",
                 "temperature_unit": settings["units"],
                 "wind_speed_unit": "mph" if settings["units"] == "fahrenheit" else "kmh",
                 "timezone": "auto",
-                "forecast_days": 5,
+                "forecast_days": max(1, int(settings.get("forecast_days", 5))),
             }
         )
         payload = fetch_json(f"https://api.open-meteo.com/v1/forecast?{query}")
         current = payload["current"]
         daily = payload["daily"]
         return {
+            "place": {"name": place_name, "latitude": latitude, "longitude": longitude},
             "current": {
                 "temperature": round(current["temperature_2m"]),
                 "feels_like": round(current["apparent_temperature"]),
@@ -198,10 +271,67 @@ class JsonApiPlugin(MarkupPlugin):
         return payload if isinstance(payload, dict) else {"data": payload}
 
 
-def _zone(name):
+TIMEZONE_ALIASES = {
+    "central": "America/Chicago",
+    "ct": "America/Chicago",
+    "cst": "America/Chicago",
+    "cdt": "America/Chicago",
+    "eastern": "America/New_York",
+    "et": "America/New_York",
+    "est": "America/New_York",
+    "edt": "America/New_York",
+    "mountain": "America/Denver",
+    "mt": "America/Denver",
+    "mst": "America/Denver",
+    "mdt": "America/Denver",
+    "arizona": "America/Phoenix",
+    "pacific": "America/Los_Angeles",
+    "pt": "America/Los_Angeles",
+    "pst": "America/Los_Angeles",
+    "pdt": "America/Los_Angeles",
+    "alaska": "America/Anchorage",
+    "hawaii": "Pacific/Honolulu",
+    "utc": "UTC",
+    "gmt": "UTC",
+}
+
+
+def resolve_timezone(name):
+    """A ZoneInfo from "America/Chicago", "Chicago", "Central", "CST", "central time", …
+
+    Blank uses the project's TIME_ZONE.
+    """
+    name = str(name or "").strip()
     if not name:
         return timezone.get_current_timezone()
     try:
         return zoneinfo.ZoneInfo(name)
-    except zoneinfo.ZoneInfoNotFoundError:
-        raise PluginError(f"Unknown timezone {name!r}") from None
+    except (zoneinfo.ZoneInfoNotFoundError, ValueError):
+        pass
+    key = name.lower().removesuffix(" timezone").removesuffix(" time zone").removesuffix(" time").strip()
+    if key in TIMEZONE_ALIASES:
+        return zoneinfo.ZoneInfo(TIMEZONE_ALIASES[key])
+    city = key.replace(" ", "_")
+    for zone in sorted(zoneinfo.available_timezones()):
+        if zone.rsplit("/", 1)[-1].lower() == city:
+            return zoneinfo.ZoneInfo(zone)
+    raise PluginError(f'Unknown timezone {name!r}. Try "America/Chicago", "Chicago" or "Central".')
+
+
+def _zone(name):
+    return resolve_timezone(name)
+
+
+US_STATES = {
+    "AL": "Alabama", "AK": "Alaska", "AZ": "Arizona", "AR": "Arkansas", "CA": "California", "CO": "Colorado",
+    "CT": "Connecticut", "DE": "Delaware", "DC": "District of Columbia", "FL": "Florida", "GA": "Georgia",
+    "HI": "Hawaii", "ID": "Idaho", "IL": "Illinois", "IN": "Indiana", "IA": "Iowa", "KS": "Kansas",
+    "KY": "Kentucky", "LA": "Louisiana", "ME": "Maine", "MD": "Maryland", "MA": "Massachusetts",
+    "MI": "Michigan", "MN": "Minnesota", "MS": "Mississippi", "MO": "Missouri", "MT": "Montana",
+    "NE": "Nebraska", "NV": "Nevada", "NH": "New Hampshire", "NJ": "New Jersey", "NM": "New Mexico",
+    "NY": "New York", "NC": "North Carolina", "ND": "North Dakota", "OH": "Ohio", "OK": "Oklahoma",
+    "OR": "Oregon", "PA": "Pennsylvania", "RI": "Rhode Island", "SC": "South Carolina", "SD": "South Dakota",
+    "TN": "Tennessee", "TX": "Texas", "UT": "Utah", "VT": "Vermont", "VA": "Virginia", "WA": "Washington",
+    "WV": "West Virginia", "WI": "Wisconsin", "WY": "Wyoming",
+}  # fmt: skip
+STATE_CODES = {name: code for code, name in US_STATES.items()}

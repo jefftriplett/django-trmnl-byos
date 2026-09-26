@@ -19,7 +19,7 @@ DEFAULTS = {
     # Milliseconds to wait for the framework runtime (window.TRMNL_PLUGINS_READY) before capturing.
     "RENDER_TIMEOUT": 20_000,
     # Render inside /api/display when a dashboard has no image yet. Handy in development;
-    # in production run ``manage.py trmnl_worker`` instead.
+    # in production run ``manage.py qcluster`` instead.
     "RENDER_INLINE": False,
     # Largest webhook payload accepted, in bytes. (trmnl.com allows 2 KB; self-hosted can afford more.)
     "WEBHOOK_MAX_BYTES": 64 * 1024,

@@ -46,7 +46,7 @@ Run the web server and the render worker, each in its own terminal:
 
 ```sh
 uv run python manage.py runserver 0.0.0.0:8000
-uv run python manage.py trmnl_worker      # refreshes data + renders stale dashboards every 30s
+uv run python manage.py qcluster          # django-q2: refreshes data + renders stale dashboards every minute
 ```
 
 Then open:
@@ -64,7 +64,7 @@ Your computer and the TRMNL must be on the same network, and the computer
 must stay awake while the TRMNL is using it.
 
 1. Start the server on all interfaces (`runserver 0.0.0.0:8000`) and keep
-   `trmnl_worker` running.
+   `qcluster` running.
 2. Find the computer's LAN IP, e.g. `ipconfig getifaddr en0` on macOS.
    Check that another device can open `http://<ip>:8000/trmnl/`. If it
    can't, allow Python through the macOS firewall.

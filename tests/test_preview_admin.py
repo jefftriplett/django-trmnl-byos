@@ -74,13 +74,20 @@ def test_device_page(admin_client, device, single, fluid):
     page = admin_client.get(f"/trmnl/devices/{device.pk}/")
     assert page.status_code == 200
     content = page.content.decode()
-    assert 'http-equiv="refresh"' in content
-    assert f"/api/images/{render.pk}.bmp" in content
+    assert 'location.reload()' in content
+    assert f"/api/images/{render.pk}.png" in content
     assert "not rendered yet" in content  # the fluid dashboard
     assert ">Next<" in content
-    assert "{&#x27;log&#x27;: &#x27;hi&#x27;}" in content
+    assert "&#x27;log&#x27;: &#x27;hi&#x27;" in content
 
 
 def test_preview_pages_use_built_css(admin_client, fluid):
     page = admin_client.get("/trmnl/").content.decode()
     assert "/static/django_trmnl/preview.css" in page
+
+
+def test_health_and_version(client):
+    from django_trmnl import __version__
+
+    assert client.get("/health/").status_code == 200
+    assert client.get("/apis/version/").json() == {"version": __version__}

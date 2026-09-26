@@ -23,6 +23,7 @@ urlpatterns = [
     re_path(r"^api/custom_plugins/(?P<uuid>[0-9a-f-]{36})/?$", views.webhook, name="webhook"),
     path("trmnl/", preview.index, name="preview-index"),
     path("trmnl/devices/<int:pk>/", preview.device, name="preview-device"),
+    path("trmnl/devices/<int:pk>/playlist/", preview.device_playlist, name="preview-device-playlist"),
     path("trmnl/dashboards/<int:pk>/", preview.dashboard, name="preview-dashboard"),
     path("trmnl/dashboards/<int:pk>/html/", preview.dashboard_html, name="preview-html"),
     path("trmnl/dashboards/<int:pk>/render/", preview.dashboard_render, name="preview-render"),

@@ -59,7 +59,8 @@ PROFILES = {
             bit_depth=1,
             size_class="md",
             screen_classes=("screen--og", "screen--md", "screen--1bit"),
-            image_format="bmp",
+            # 1-bit PNG, like TRMNL's own og_png model (https://trmnl.com/api/models).
+            image_format="png",
             short_name="OG",
         ),
         DeviceProfile(

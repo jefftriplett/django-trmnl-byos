@@ -14,13 +14,14 @@ from . import conf, images
 from .devices import MODEL_ALIASES
 from .models import Device, DeviceLog, Playlist, PluginInstance, Render, normalize_mac
 from .services import next_item
+from .tasks import dashboards_for_instance, enqueue_render
 
 logger = logging.getLogger(__name__)
 
 PLACEHOLDERS = {
     "welcome": ("Hello!", ["Device {friendly_id} is connected.", "Give it a playlist in the admin."]),
     "empty": ("Nothing scheduled", ["Device {friendly_id} has no active playlist items", "right now."]),
-    "rendering": ("Rendering…", ["Your dashboard is being rendered.", "Run: manage.py trmnl_worker"]),
+    "rendering": ("Rendering…", ["Your dashboard is being rendered.", "Run: manage.py qcluster"]),
     "disabled": ("Device disabled", ["Device {friendly_id} is disabled in the admin."]),
 }
 
@@ -174,7 +175,8 @@ def display_response(image_url, filename, refresh_rate):
             "status": 0,
             "image_url": image_url,
             "filename": filename,
-            "refresh_rate": str(refresh_rate),
+            # An integer: the firmware and other clients decode it as a number (a string can parse as 0).
+            "refresh_rate": int(refresh_rate),
             "reset_firmware": False,
             "update_firmware": False,
             "firmware_url": None,
@@ -204,7 +206,7 @@ def display(request):
                 "status": 202,
                 "image_url": None,
                 "filename": None,
-                "refresh_rate": "60",
+                "refresh_rate": 60,
                 "reset_firmware": False,
                 "update_firmware": False,
                 "firmware_url": None,
@@ -227,6 +229,7 @@ def display(request):
 
         render = render_dashboard(item.dashboard, device.profile, device.orientation)
     if render is None:
+        enqueue_render([item.dashboard_id])
         return display_placeholder(request, device, "rendering", refresh_rate=60)
 
     Device.objects.filter(pk=device.pk).update(last_render=render)
@@ -348,5 +351,6 @@ def webhook(request, uuid):
     if len(json.dumps(instance.merge_variables)) > conf.get("WEBHOOK_MAX_BYTES"):
         return JsonResponse({"error": "Merged payload too large"}, status=413)
     instance.save(update_fields=["merge_variables", "updated_at"])
+    enqueue_render(dashboards_for_instance(instance))
     return JsonResponse({"message": "Updated", "merge_variables": instance.merge_variables})
 

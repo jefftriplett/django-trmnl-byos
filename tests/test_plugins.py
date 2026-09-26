@@ -70,9 +70,87 @@ def test_weather_fetch_parses_open_meteo(monkeypatch):
             "weather_code": [0, 61],
         },
     }
-    monkeypatch.setattr("django_trmnl.plugins.builtin.fetch_json", lambda url, headers=None: payload)
-    weather = PluginInstance.objects.create(name="W", plugin="weather")
+    geocode = {
+        "results": [
+            {"name": "Lawrence", "admin1": "Massachusetts", "latitude": 42.7, "longitude": -71.16},
+            {"name": "Lawrence", "admin1": "Kansas", "latitude": 38.97167, "longitude": -95.23525},
+        ]
+    }
+    urls = []
+
+    def fake_fetch(url, headers=None):
+        urls.append(url)
+        return geocode if "geocoding-api" in url else payload
+
+    monkeypatch.setattr("django_trmnl.plugins.builtin.fetch_json", fake_fetch)
+    weather = PluginInstance.objects.create(name="W", plugin="weather", settings={"location": "Lawrence, KS"})
     data = weather.get_plugin().fetch(weather)
+    assert data["place"] == {"name": "Lawrence, KS", "latitude": 38.97167, "longitude": -95.23525}
+    assert "latitude=38.97167" in urls[-1]
+    assert weather.get_plugin().title(PluginInstance(name="Weather", merge_variables=data)) == "Weather · Lawrence, KS"
     assert data["current"]["temperature"] == 72
     assert data["current"]["conditions"] == "Partly cloudy"
     assert data["forecast"][1] == {"date": "2026-09-27", "high": 78, "low": 60, "conditions": "Light rain"}
+
+
+@pytest.mark.parametrize(
+    "name, zone",
+    [
+        ("America/Chicago", "America/Chicago"),
+        ("Chicago", "America/Chicago"),
+        ("chicago", "America/Chicago"),
+        ("Central", "America/Chicago"),
+        ("CST", "America/Chicago"),
+        ("central time", "America/Chicago"),
+        ("Eastern", "America/New_York"),
+        ("new york", "America/New_York"),
+        ("UTC", "UTC"),
+    ],
+)
+def test_resolve_timezone(name, zone):
+    from django_trmnl.plugins.builtin import resolve_timezone
+
+    assert str(resolve_timezone(name)) == zone
+
+
+def test_clock_shows_time_in_its_timezone():
+    clock = PluginInstance.objects.create(name="C", plugin="clock", settings={"timezone": "Central"})
+    html = clock.get_plugin().render(clock, "full", TRMNL)
+    assert "CST" in html or "CDT" in html
+
+
+def test_weather_uses_coordinates_without_geocoding(monkeypatch):
+    urls = []
+    monkeypatch.setattr(
+        "django_trmnl.plugins.builtin.fetch_json",
+        lambda url, headers=None: urls.append(url)
+        or {
+            "current": {"temperature_2m": 50, "apparent_temperature": 48, "weather_code": 3, "wind_speed_10m": 3, "relative_humidity_2m": 60},
+            "daily": {"time": [], "temperature_2m_max": [], "temperature_2m_min": [], "weather_code": []},
+        },
+    )
+    weather = PluginInstance.objects.create(
+        name="W", plugin="weather", settings={"latitude": 38.97, "longitude": -95.24, "label": "Office", "units": "celsius"}
+    )
+    data = weather.get_plugin().fetch(weather)
+    assert len(urls) == 1 and "geocoding" not in urls[0]
+    assert data["place"]["name"] == "Office"
+    assert data["units"] == "°C"
+
+
+@pytest.mark.parametrize(
+    "plugin, values, error",
+    [
+        ("clock", {"timezone": "Mars/Olympus"}, "Unknown timezone"),
+        ("clock", {"hour_format": "13"}, "hour_format"),
+        ("weather", {"units": "kelvin"}, "units"),
+        ("weather", {"forecast_days": 9}, "forecast_days"),
+        ("weather", {"location": ""}, "Set a location"),
+    ],
+)
+def test_invalid_settings_are_rejected(plugin, values, error):
+    from django.core.exceptions import ValidationError
+
+    instance = PluginInstance(name="X", plugin=plugin, settings=values)
+    with pytest.raises(ValidationError, match=error):
+        instance.clean()

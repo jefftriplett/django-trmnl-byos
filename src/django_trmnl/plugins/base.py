@@ -30,9 +30,14 @@ class Plugin:
     template_name = None
     polls = False
     default_settings = {}
+    # Per-setting help text, shown in the admin.
+    help = {}
 
     def settings_for(self, instance):
         return {**self.default_settings, **(instance.settings or {})}
+
+    def clean_settings(self, settings):
+        """Raise PluginError when merged settings are invalid. Called from the admin."""
 
     def fetch(self, instance):
         """Return fresh merge variables for a polling plugin."""

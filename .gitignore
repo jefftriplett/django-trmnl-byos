@@ -8,3 +8,4 @@ dist/
 .pytest_cache/
 .django_tailwind_cli/
 byos_django-git/
+.env

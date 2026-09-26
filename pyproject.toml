@@ -8,12 +8,12 @@ authors = [{ name = "Jeff Triplett", email = "jeff.triplett@gmail.com" }]
 requires-python = ">=3.12"
 classifiers = [
     "Framework :: Django",
-    "Framework :: Django :: 5.2",
     "Framework :: Django :: 6.0",
     "Programming Language :: Python :: 3",
 ]
 dependencies = [
-    "django>=5.2",
+    "django>=6.0,<6.1",
+    "django-q2>=1.8",
     "pillow>=11.0",
     "playwright>=1.50",
 ]
@@ -23,11 +23,23 @@ liquid = ["python-liquid>=2.0"]
 
 [dependency-groups]
 dev = [
-    "django-tailwind-cli>=4.8.1",
     "pytest>=8",
     "pytest-django>=4.9",
     "python-liquid>=2.0",
 ]
+example = [
+    "django-browser-reload>=1.21.0",
+    "django-health-check>=4.0.0",
+    "django-prodserver[gunicorn]>=3.0.0",
+    "django-tailwind-cli>=4.8.1",
+    "environs[django]>=15.2.0",
+    "psycopg[binary]>=3.3.6",
+    "whitenoise>=6.12.0",
+]
+
+[tool.uv]
+# The example project's dependencies install by default for local development.
+default-groups = ["dev", "example"]
 
 [build-system]
 requires = ["hatchling"]
@@ -39,9 +51,38 @@ packages = ["src/django_trmnl"]
 [tool.hatch.build.targets.sdist]
 include = ["src/django_trmnl", "README.md", "NOTES.md"]
 
+[tool.coverage.run]
+omit = [
+    "*/admin.py",
+    "*/manage.py",
+    "*/migrations/*",
+    "*/tests/*",
+    "conftest.py",
+]
+
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "example.settings"
 pythonpath = ["."]
 testpaths = ["tests"]
 markers = ["render: needs a Playwright Chromium browser (run with -m render)"]
 addopts = "-m 'not render'"
+
+[tool.ruff]
+exclude = [
+    ".git",
+    ".venv",
+    "build",
+    "dist",
+    "migrations",
+    "node_modules",
+    "staticfiles",
+]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+fixable = ["A", "B", "C", "D", "E", "F"]
+ignore = ["E501", "E741"]
+select = ["E", "F"]

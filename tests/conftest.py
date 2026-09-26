@@ -1,6 +1,30 @@
+import logging
+
 import pytest
 
 from django_trmnl.models import Dashboard, DashboardCell, Device, Playlist, PlaylistItem, PluginInstance
+
+logging.disable(logging.CRITICAL)
+
+
+@pytest.fixture(autouse=True)
+def use_test_settings(settings):
+    settings.DEBUG = False
+    settings.MIDDLEWARE = [
+        middleware
+        for middleware in settings.MIDDLEWARE
+        if middleware
+        not in {
+            "whitenoise.middleware.WhiteNoiseMiddleware",
+            "django_browser_reload.middleware.BrowserReloadMiddleware",
+        }
+    ]
+    # Use a faster password hasher
+    settings.PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
+    settings.STORAGES = {
+        "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+        "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+    }
 
 
 @pytest.fixture
