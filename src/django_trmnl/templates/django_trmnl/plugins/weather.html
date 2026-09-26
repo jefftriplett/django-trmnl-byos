@@ -1,0 +1,28 @@
+{% if not current %}
+  <div class="layout layout--col layout--center">
+    <span class="label">No weather yet for {{ settings.location }}.</span>
+  </div>
+{% else %}
+  <div class="layout {% if size == 'half_vertical' or size == 'quadrant' %}layout--col{% else %}layout--row{% endif %} layout--center gap--large">
+    <div class="flex flex--col gap--small">
+      <span class="value value--tnums {% if size == 'quadrant' %}value--large{% elif size == 'half_vertical' %}value--xlarge lg:value--xxlarge{% else %}value--xxlarge lg:value--xxxlarge{% endif %}" data-fit-value="true">{{ current.temperature }}{{ units }}</span>
+      <span class="label">{{ current.conditions }}</span>
+      {% if size != 'quadrant' %}
+        <span class="description">Feels {{ current.feels_like }}{{ units }} · {{ current.humidity }}% · wind {{ current.wind }}</span>
+      {% endif %}
+    </div>
+    {% if size != 'quadrant' %}
+      <div class="flex flex--col gap--xsmall">
+        {% for day in forecast|slice:forecast_days %}
+          <div class="item">
+            <div class="meta"></div>
+            <div class="content">
+              <span class="title title--small">{% if forloop.first %}Today{% else %}{{ day.date|slice:"5:" }}{% endif %}</span>
+              <span class="description">{{ day.high }}° / {{ day.low }}° · {{ day.conditions }}</span>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+{% endif %}

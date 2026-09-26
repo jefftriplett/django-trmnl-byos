@@ -1,0 +1,66 @@
+{% extends "django_trmnl/preview/base.html" %}
+{% block title %}{{ dashboard.name }} · django-trmnl{% endblock %}
+{% block content %}
+  <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <p class="eyebrow mb-1">Dashboard</p>
+      <h2 class="text-3xl font-bold tracking-tight">{{ dashboard.name }}</h2>
+      <div class="mt-2 flex flex-wrap gap-2">
+        <span class="chip">{{ dashboard.get_layout_display }}</span>
+        <span class="chip">{{ profile.name }}</span>
+        <span class="chip">{{ width }}×{{ height }} CSS px</span>
+      </div>
+    </div>
+    <div class="flex flex-wrap items-center gap-3">
+      <div class="segmented" aria-label="Device profile">
+        {% for option in profiles %}
+          <a href="{{ profile_url }}?profile={{ option.key }}&orientation={{ orientation }}" aria-current="{% if option.key == profile.key %}true{% else %}false{% endif %}" title="{{ option.name }}">{{ option.short_name }}</a>
+        {% endfor %}
+      </div>
+      <div class="segmented" aria-label="Orientation">
+        <a href="{{ profile_url }}?profile={{ profile.key }}&orientation=landscape" aria-current="{% if orientation == 'landscape' %}true{% else %}false{% endif %}">Landscape</a>
+        <a href="{{ profile_url }}?profile={{ profile.key }}&orientation=portrait" aria-current="{% if orientation == 'portrait' %}true{% else %}false{% endif %}">Portrait</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="mb-6 flex flex-wrap gap-4 text-sm">
+    <a class="link" href="{% url 'admin:django_trmnl_dashboard_change' dashboard.pk %}">Edit dashboard</a>
+    <a class="link" href="{{ html_url }}" target="_blank">Open HTML in a new tab</a>
+  </div>
+
+  <div class="flex flex-wrap items-start gap-8">
+    <section class="card">
+      <div class="card-title">Live HTML</div>
+      <div class="p-4">
+        {% comment %}
+          The framework lays out in physical pixels and scales itself, so the iframe is
+          panel-sized and shrunk back to CSS size here. Sizes are per profile, hence inline styles.
+        {% endcomment %}
+        <div class="frame overflow-hidden" style="width: {{ width }}px; height: {{ height }}px;">
+          <iframe src="{{ html_url }}" width="{{ image_width }}" height="{{ image_height }}" title="Live preview"
+                  class="origin-top-left border-0" style="transform: scale({{ scale|stringformat:'.6f' }});"></iframe>
+        </div>
+      </div>
+    </section>
+    <section class="card">
+      <div class="card-title">Device image
+        {% if render %}<span class="text-xs font-normal tracking-normal text-muted normal-case">{{ render.created_at|timesince }} ago · {{ render.duration_ms }} ms</span>{% endif %}
+      </div>
+      <div class="p-4">
+        {% if render %}
+          <img src="{% url 'django_trmnl:image' render.pk render.extension %}" width="{{ width }}" class="frame" alt="Rendered {{ dashboard.name }}">
+        {% else %}
+          <div class="frame grid place-items-center text-muted" style="width: {{ width }}px; height: {{ height }}px;">Not rendered for this profile yet.</div>
+        {% endif %}
+        <form method="post" action="{% url 'django_trmnl:preview-render' dashboard.pk %}" class="mt-4 flex items-center gap-3">
+          {% csrf_token %}
+          <input type="hidden" name="profile" value="{{ profile.key }}">
+          <input type="hidden" name="orientation" value="{{ orientation }}">
+          <button type="submit" class="button button-primary">Render now</button>
+          {% if render %}<span class="font-mono text-xs text-muted">{{ render.filename }}</span>{% endif %}
+        </form>
+      </div>
+    </section>
+  </div>
+{% endblock %}

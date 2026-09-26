@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width={{ width }}, initial-scale=1">
+  <title>{{ dashboard.name }}</title>
+  <link rel="stylesheet" href="{{ css_url }}">
+  <script src="{{ js_url }}"></script>
+  <style>html, body { margin: 0; overflow: hidden; }</style>
+</head>
+<body class="environment trmnl">
+  <div class="{{ screen_classes }}"{% if screen_style %} style="{{ screen_style }}"{% endif %}>
+    {% if mashup_classes %}
+      <div class="{{ mashup_classes }}">
+        {% for cell in cells %}
+          {% if cell.cell_classes %}<div class="{{ cell.cell_classes }}">{% endif %}
+          <div class="view view--{{ cell.size }}" id="{{ cell.dom_id }}">{{ cell.markup }}</div>
+          {% if cell.cell_classes %}</div>{% endif %}
+        {% endfor %}
+      </div>
+    {% else %}
+      {% for cell in cells %}
+        <div class="view view--{{ cell.size }}" id="{{ cell.dom_id }}">{{ cell.markup }}</div>
+      {% endfor %}
+    {% endif %}
+  </div>
+</body>
+</html>

@@ -1,0 +1,95 @@
+{% extends "django_trmnl/preview/base.html" %}
+{% block title %}{{ device.name }} · django-trmnl{% endblock %}
+{% block head %}<meta http-equiv="refresh" content="30">{% endblock %}
+{% block content %}
+  <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <p class="eyebrow mb-1">Device</p>
+      <h2 class="flex items-center gap-3 text-3xl font-bold tracking-tight">
+        <span class="dot {% if online %}bg-accent{% else %}border border-muted{% endif %}"></span>{{ device.name }}
+      </h2>
+      <div class="mt-2 flex flex-wrap gap-2">
+        <span class="chip">{{ device.friendly_id }}</span>
+        <span class="chip">{{ profile.name }}</span>
+        {% if device.orientation == "portrait" %}<span class="chip">Portrait</span>{% endif %}
+        <span class="chip {% if online %}bg-ink text-white{% endif %}">{% if online %}Online{% else %}Offline{% endif %}</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-4 text-sm text-muted">
+      Refreshes every 30s
+      <a class="button" href="{% url 'admin:django_trmnl_device_change' device.pk %}">Edit device</a>
+    </div>
+  </div>
+
+  <div class="mb-10 grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
+    <section class="card">
+      <div class="card-title">On the device now
+        {% if device.last_render %}<span class="text-xs font-normal tracking-normal text-muted normal-case">{{ device.last_render.dashboard }} · rendered {{ device.last_render.created_at|timesince }} ago</span>{% endif %}
+      </div>
+      <div class="p-4">
+        {% if device.last_render %}
+          <img src="{% url 'django_trmnl:image' device.last_render.pk device.last_render.extension %}" class="frame w-full" alt="{{ device.last_render.dashboard }}">
+        {% elif device.last_seen_at %}
+          <p class="text-muted">Showing a status screen (welcome, empty playlist or rendering). Give the device a playlist and keep <code class="code">trmnl_worker</code> running.</p>
+        {% else %}
+          <p class="text-muted">This device hasn't checked in yet. Point it at <code class="code">{{ server_url }}</code>.</p>
+        {% endif %}
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-title">Health</div>
+      <dl class="divide-y divide-line text-sm">
+        <div class="flex justify-between gap-4 px-4 py-2.5"><dt class="eyebrow">Last seen</dt><dd>{% if device.last_seen_at %}{{ device.last_seen_at|timesince }} ago{% else %}never{% endif %}</dd></div>
+        <div class="flex justify-between gap-4 px-4 py-2.5"><dt class="eyebrow">Next wake</dt><dd>{% if next_wake %}{{ next_wake|time:"g:i:s A" }}{% else %}—{% endif %}</dd></div>
+        <div class="flex justify-between gap-4 px-4 py-2.5"><dt class="eyebrow">Refresh</dt><dd>every {{ device.refresh_rate }}s</dd></div>
+        {% if device.reported_refresh_rate and device.reported_refresh_rate != device.refresh_rate %}
+          <div class="flex justify-between gap-4 px-4 py-2.5"><dt class="eyebrow">Device reports</dt><dd>{{ device.reported_refresh_rate }}s</dd></div>
+        {% endif %}
+        <div class="flex justify-between gap-4 px-4 py-2.5"><dt class="eyebrow">Battery</dt><dd>{% if device.battery_voltage %}{{ device.battery_voltage }} V{% else %}—{% endif %}</dd></div>
+        <div class="flex justify-between gap-4 px-4 py-2.5"><dt class="eyebrow">WiFi (RSSI)</dt><dd>{{ device.rssi|default:"—" }}</dd></div>
+        <div class="flex justify-between gap-4 px-4 py-2.5"><dt class="eyebrow">Firmware</dt><dd>{{ device.firmware_version|default:"—" }}</dd></div>
+        <div class="flex justify-between gap-4 px-4 py-2.5"><dt class="eyebrow">Model</dt><dd>{{ device.reported_model|default:"—" }}</dd></div>
+        <div class="flex justify-between gap-4 px-4 py-2.5"><dt class="eyebrow">MAC</dt><dd class="font-mono text-xs">{{ device.mac_address }}</dd></div>
+      </dl>
+    </section>
+  </div>
+
+  <section class="mb-10">
+    <h3 class="mb-4 text-xl font-bold tracking-tight">Playlist {% if device.playlist %}<span class="font-normal text-muted">· {{ device.playlist }}</span>{% endif %}</h3>
+    {% if items %}
+      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {% for entry in items %}
+          <a href="{% url 'django_trmnl:preview-dashboard' entry.item.dashboard.pk %}?profile={{ device.profile }}&orientation={{ device.orientation }}"
+             class="card block {% if not entry.active %}opacity-50{% endif %} {% if entry.next %}outline-2 outline-offset-4 outline-ink{% endif %}">
+            {% if entry.render %}
+              <img src="{% url 'django_trmnl:image' entry.render.pk entry.render.extension %}" class="aspect-[5/3] w-full border-b border-ink bg-white object-contain" alt="">
+            {% else %}
+              <div class="grid aspect-[5/3] place-items-center border-b border-ink bg-paper text-sm text-muted">not rendered yet</div>
+            {% endif %}
+            <div class="flex items-center justify-between gap-2 px-3 py-2">
+              <span class="truncate font-semibold">{{ entry.item.dashboard }}</span>
+              {% if entry.next %}<span class="chip bg-ink text-white">Next</span>{% elif not entry.active %}<span class="chip">Off now</span>{% endif %}
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="text-muted">No playlist. Pick one in the <a class="link" href="{% url 'admin:django_trmnl_device_change' device.pk %}">device settings</a>.</p>
+    {% endif %}
+  </section>
+
+  <section>
+    <h3 class="mb-4 text-xl font-bold tracking-tight">Recent logs</h3>
+    <div class="card overflow-x-auto">
+      <table class="data-table">
+        <tr><th>When</th><th>Message</th></tr>
+        {% for log in logs %}
+          <tr><td class="whitespace-nowrap">{{ log.created_at|timesince }} ago</td><td><code class="code">{{ log.message }}</code></td></tr>
+        {% empty %}
+          <tr><td colspan="2" class="text-muted">No logs. The firmware posts here when something goes wrong.</td></tr>
+        {% endfor %}
+      </table>
+    </div>
+  </section>
+{% endblock %}

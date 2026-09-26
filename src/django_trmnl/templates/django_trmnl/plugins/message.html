@@ -1,0 +1,7 @@
+<div class="layout layout--col layout--center gap--medium">
+  {% with title=data.title|default:settings.title message=data.message|default:settings.message author=data.author|default:settings.author %}
+    {% if title %}<span class="title{% if size == 'full' %} title--large lg:title--xlarge{% endif %}">{{ title }}</span>{% endif %}
+    <div class="description text--center{% if size == 'full' %} description--large lg:description--xlarge{% endif %}" data-clamp="{% if size == 'quadrant' %}3{% else %}6{% endif %}">{{ message }}</div>
+    {% if author %}<span class="label label--underline">{{ author }}</span>{% endif %}
+  {% endwith %}
+</div>

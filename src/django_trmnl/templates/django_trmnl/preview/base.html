@@ -1,0 +1,32 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}django-trmnl{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'django_trmnl/preview.css' %}">
+  {% block head %}{% endblock %}
+</head>
+<body class="min-h-screen bg-paper font-sans text-[15px] leading-normal text-ink antialiased">
+  <header class="bg-ink text-white">
+    <nav class="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-6 py-3">
+      <a href="{% url 'django_trmnl:preview-index' %}" class="flex items-center gap-2.5 font-bold tracking-tight">
+        <span class="grid size-6 place-items-center border-2 border-white text-[10px] leading-none">▦</span>
+        django-trmnl
+      </a>
+      <a class="text-sm text-white/80 hover:text-white" href="{% url 'django_trmnl:preview-index' %}">Dashboards &amp; devices</a>
+      <a class="ml-auto text-sm text-white/80 hover:text-white" href="{% url 'admin:index' %}">Admin →</a>
+    </nav>
+  </header>
+  <main class="mx-auto max-w-6xl px-6 py-8">
+    {% if messages %}
+      <ul class="mb-6 space-y-2">
+        {% for message in messages %}
+          <li class="card border-l-8 px-4 py-2.5 {% if 'error' in message.tags %}border-l-danger{% else %}border-l-accent{% endif %}">{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

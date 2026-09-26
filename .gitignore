@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.venv/
+db.sqlite3
+staticfiles/
+renders/
+dist/
+.pytest_cache/
+.django_tailwind_cli/
+byos_django-git/

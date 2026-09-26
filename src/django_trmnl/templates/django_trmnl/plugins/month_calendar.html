@@ -1,0 +1,17 @@
+<div class="layout layout--col layout--top layout--stretch-x gap--small">
+  <span class="title{% if size == 'quadrant' %} title--small{% endif %}">{{ today|date:"F Y" }}</span>
+  <table class="table {% if size == 'quadrant' %}table--xsmall{% else %}table--small lg:table--base{% endif %} table--condensed">
+    <thead>
+      <tr>{% for name in day_names %}<th><span class="title title--small">{% if size == 'quadrant' %}{{ name|slice:":1" }}{% else %}{{ name }}{% endif %}</span></th>{% endfor %}</tr>
+    </thead>
+    <tbody>
+      {% for week in weeks %}
+        <tr>
+          {% for day in week %}
+            <td>{% if day %}<span class="label{% if day == today.day %} label--inverted{% endif %}">{{ day }}</span>{% endif %}</td>
+          {% endfor %}
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

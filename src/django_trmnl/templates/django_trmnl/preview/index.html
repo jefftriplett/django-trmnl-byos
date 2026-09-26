@@ -1,0 +1,85 @@
+{% extends "django_trmnl/preview/base.html" %}
+{% block content %}
+  <section class="mb-12">
+    <div class="mb-4 flex items-baseline justify-between gap-4">
+      <h2 class="text-2xl font-bold tracking-tight">Dashboards</h2>
+      <a class="link text-sm" href="{% url 'admin:django_trmnl_dashboard_add' %}">New dashboard</a>
+    </div>
+    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {% for dashboard in dashboards %}
+        <article class="card flex flex-col">
+          <a href="{% url 'django_trmnl:preview-dashboard' dashboard.pk %}" class="block border-b border-ink bg-paper">
+            {% if dashboard.thumbnail %}
+              <img src="{% url 'django_trmnl:image' dashboard.thumbnail.pk dashboard.thumbnail.extension %}" class="aspect-[5/3] w-full bg-white object-contain" alt="{{ dashboard.name }}">
+            {% else %}
+              <div class="grid aspect-[5/3] place-items-center text-sm text-muted">not rendered yet</div>
+            {% endif %}
+          </a>
+          <div class="flex flex-1 flex-col gap-2 p-4">
+            <div class="flex items-start justify-between gap-2">
+              <a class="text-lg font-bold hover:underline" href="{% url 'django_trmnl:preview-dashboard' dashboard.pk %}">{{ dashboard.name }}</a>
+              <span class="chip shrink-0">{{ dashboard.layout }}</span>
+            </div>
+            <p class="text-sm text-muted">{% for cell in dashboard.cells.all %}{{ cell.instance.name }}{% if not forloop.last %} · {% endif %}{% empty %}No plugins yet{% endfor %}</p>
+            <div class="mt-auto flex items-center justify-between gap-2 pt-2">
+              <div class="segmented">
+                <a href="{% url 'django_trmnl:preview-dashboard' dashboard.pk %}?profile=og">OG</a>
+                <a href="{% url 'django_trmnl:preview-dashboard' dashboard.pk %}?profile=og_2bit">2-bit</a>
+                <a href="{% url 'django_trmnl:preview-dashboard' dashboard.pk %}?profile=x">X</a>
+              </div>
+              <a class="link text-sm" href="{% url 'admin:django_trmnl_dashboard_change' dashboard.pk %}">Edit</a>
+            </div>
+          </div>
+        </article>
+      {% empty %}
+        <p class="text-muted">No dashboards yet. Run <code class="code">manage.py trmnl_demo</code> or add one in the admin.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="mb-12">
+    <h2 class="mb-4 text-2xl font-bold tracking-tight">Devices</h2>
+    <div class="grid gap-6 md:grid-cols-2">
+      {% for device in devices %}
+        <a href="{% url 'django_trmnl:preview-device' device.pk %}" class="card group flex gap-4 p-4 transition hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0_0_var(--color-ink)]">
+          <div class="w-40 shrink-0">
+            {% if device.last_render %}
+              <img src="{% url 'django_trmnl:image' device.last_render.pk device.last_render.extension %}" class="frame w-full" alt="">
+            {% else %}
+              <div class="grid aspect-[5/3] place-items-center border border-dashed border-line text-xs text-muted">no screen yet</div>
+            {% endif %}
+          </div>
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-2">
+              <span class="dot {% if device.online %}bg-accent{% else %}border border-muted{% endif %}" title="{% if device.online %}online{% else %}offline{% endif %}"></span>
+              <span class="truncate font-bold group-hover:underline">{{ device.name }}</span>
+            </div>
+            <p class="mt-1 text-sm text-muted">{{ device.friendly_id }} · {{ device.get_profile_display }}</p>
+            <dl class="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+              <dt class="eyebrow">Seen</dt><dd>{% if device.last_seen_at %}{{ device.last_seen_at|timesince }} ago{% else %}never{% endif %}</dd>
+              <dt class="eyebrow">Playlist</dt><dd class="truncate">{{ device.playlist|default:"—" }}</dd>
+              <dt class="eyebrow">Battery</dt><dd>{% if device.battery_voltage %}{{ device.battery_voltage }} V{% else %}—{% endif %}</dd>
+            </dl>
+          </div>
+        </a>
+      {% empty %}
+        <p class="text-muted">No devices yet. Point a TRMNL at this server, or simulate one with curl (see the README).</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section>
+    <h2 class="mb-4 text-2xl font-bold tracking-tight">Webhooks</h2>
+    <div class="card overflow-x-auto">
+      <table class="data-table">
+        <tr><th>Plugin instance</th><th>Webhook URL</th></tr>
+        {% for instance in instances %}
+          <tr>
+            <td class="whitespace-nowrap"><span class="font-semibold">{{ instance.name }}</span> <span class="text-muted">{{ instance.plugin }}</span></td>
+            <td><code class="code">{{ webhook_base }}{{ instance.uuid }}</code></td>
+          </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </section>
+{% endblock %}

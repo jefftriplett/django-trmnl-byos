@@ -1,0 +1,4 @@
+<div class="layout layout--col layout--center gap--small">
+  <span class="value value--tnums {% if size == 'full' %}value--xxxlarge lg:value--giga{% elif size == 'quadrant' %}value--xlarge lg:value--xxlarge{% else %}value--xxlarge lg:value--xxxlarge{% endif %}" data-fit-value="true">{{ now|date:time_format }}</span>
+  <span class="label{% if size == 'full' %} label--large{% endif %}">{{ now|date:"l, F j" }}</span>
+</div>
