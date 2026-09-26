@@ -1,8 +1,8 @@
 /* Source for the staff preview pages. Build with: manage.py tailwind build
-   (output: src/django_trmnl/static/django_trmnl/preview.css, shipped with the package).
+   (output: django_trmnl_byos/static/django_trmnl_byos/preview.css, shipped with the package).
    The TRMNL screens themselves use the TRMNL Framework; this only styles our web UI. */
 @import "tailwindcss" source(none);
-@source "../templates/django_trmnl/preview";
+@source "../templates/django_trmnl_byos/preview";
 
 @theme {
   --color-ink: #1a1a1a;

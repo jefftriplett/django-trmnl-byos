@@ -17,7 +17,7 @@ from .tasks import dashboards_for_instance, enqueue_render
 def image_tag(render, width=400):
     if not render:
         return "—"
-    url = reverse("django_trmnl:image", args=[render.pk, render.extension])
+    url = reverse("django_trmnl_byos:image", args=[render.pk, render.extension])
     return format_html('<img src="{}" width="{}" style="border:1px solid #333" alt="">', url, width)
 
 
@@ -128,7 +128,7 @@ class DashboardAdmin(admin.ModelAdmin):
 
     @admin.display(description="Preview")
     def preview(self, obj):
-        url = reverse("django_trmnl:preview-dashboard", args=[obj.pk])
+        url = reverse("django_trmnl_byos:preview-dashboard", args=[obj.pk])
         return format_html('<a href="{}">Preview</a>', url)
 
     def save_related(self, request, form, formsets, change):

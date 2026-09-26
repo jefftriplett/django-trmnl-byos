@@ -5,7 +5,7 @@ import io
 import pytest
 from PIL import Image
 
-from django_trmnl.rendering import render_dashboard
+from django_trmnl_byos.rendering import render_dashboard
 
 pytestmark = [pytest.mark.render, pytest.mark.django_db(transaction=True)]
 

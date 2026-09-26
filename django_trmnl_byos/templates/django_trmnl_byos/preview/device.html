@@ -1,4 +1,4 @@
-{% extends "django_trmnl/preview/base.html" %}
+{% extends "django_trmnl_byos/preview/base.html" %}
 {% block title %}{{ device.name }} · django-trmnl{% endblock %}
 {% block head %}
   <script>
@@ -25,7 +25,7 @@
     </div>
     <div class="flex items-center gap-4 text-sm text-muted">
       Refreshes every 30s
-      <a class="button" href="{% url 'admin:django_trmnl_device_change' device.pk %}">Edit device</a>
+      <a class="button" href="{% url 'admin:django_trmnl_byos_device_change' device.pk %}">Edit device</a>
     </div>
   </div>
 
@@ -36,7 +36,7 @@
       </div>
       <div class="p-4">
         {% if device.last_render %}
-          <img src="{% url 'django_trmnl:image' device.last_render.pk device.last_render.extension %}" class="frame w-full" alt="{{ device.last_render.dashboard }}">
+          <img src="{% url 'django_trmnl_byos:image' device.last_render.pk device.last_render.extension %}" class="frame w-full" alt="{{ device.last_render.dashboard }}">
         {% elif device.last_seen_at %}
           <p class="text-muted">Showing a status screen (welcome, empty playlist or rendering). Give the device a playlist and keep <code class="code">manage.py qcluster</code> running.</p>
         {% else %}
@@ -74,7 +74,7 @@
         {% endif %}
       </div>
       <div class="flex flex-wrap items-center gap-3">
-        <form method="post" action="{% url 'django_trmnl:preview-device-playlist' device.pk %}" class="flex items-center gap-2">
+        <form method="post" action="{% url 'django_trmnl_byos:preview-device-playlist' device.pk %}" class="flex items-center gap-2">
           {% csrf_token %}
           <input type="hidden" name="action" value="assign">
           <select name="playlist" class="control" aria-label="Playlist">
@@ -83,7 +83,7 @@
           </select>
           <button type="submit" class="button">Use</button>
         </form>
-        <form method="post" action="{% url 'django_trmnl:preview-device-playlist' device.pk %}">
+        <form method="post" action="{% url 'django_trmnl_byos:preview-device-playlist' device.pk %}">
           {% csrf_token %}
           <input type="hidden" name="action" value="create">
           <button type="submit" class="button" title="{% if device.playlist %}Copy the current playlist into a new one used only by this device{% else %}Start an empty playlist for this device{% endif %}">
@@ -101,9 +101,9 @@
         <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {% for entry in items %}
             <article class="card flex flex-col {% if entry.next %}outline-2 outline-offset-4 outline-ink{% endif %}">
-              <a href="{% url 'django_trmnl:preview-dashboard' entry.item.dashboard.pk %}?profile={{ device.profile }}&orientation={{ device.orientation }}" class="block {% if not entry.item.enabled %}opacity-40{% elif not entry.active %}opacity-60{% endif %}">
+              <a href="{% url 'django_trmnl_byos:preview-dashboard' entry.item.dashboard.pk %}?profile={{ device.profile }}&orientation={{ device.orientation }}" class="block {% if not entry.item.enabled %}opacity-40{% elif not entry.active %}opacity-60{% endif %}">
                 {% if entry.render %}
-                  <img src="{% url 'django_trmnl:image' entry.render.pk entry.render.extension %}" class="aspect-[5/3] w-full border-b border-ink bg-white object-contain" alt="">
+                  <img src="{% url 'django_trmnl_byos:image' entry.render.pk entry.render.extension %}" class="aspect-[5/3] w-full border-b border-ink bg-white object-contain" alt="">
                 {% else %}
                   <div class="grid aspect-[5/3] place-items-center border-b border-ink bg-paper text-sm text-muted">not rendered yet</div>
                 {% endif %}
@@ -112,7 +112,7 @@
                 <span class="truncate font-semibold">{{ forloop.counter }}. {{ entry.item.dashboard }}</span>
                 {% if entry.next %}<span class="chip bg-ink text-white">Next</span>{% elif not entry.item.enabled %}<span class="chip">Excluded</span>{% elif not entry.active %}<span class="chip">Off now</span>{% endif %}
               </div>
-              <form method="post" action="{% url 'django_trmnl:preview-device-playlist' device.pk %}" class="mt-auto flex flex-wrap items-center gap-2 px-3 pt-2 pb-3">
+              <form method="post" action="{% url 'django_trmnl_byos:preview-device-playlist' device.pk %}" class="mt-auto flex flex-wrap items-center gap-2 px-3 pt-2 pb-3">
                 {% csrf_token %}
                 <input type="hidden" name="item" value="{{ entry.item.pk }}">
                 <button type="submit" name="action" value="show_next" class="button button-primary px-2 py-1 text-sm"{% if entry.next %} disabled{% endif %}>Show next</button>
@@ -132,7 +132,7 @@
       {% endif %}
 
       {% if available %}
-        <form method="post" action="{% url 'django_trmnl:preview-device-playlist' device.pk %}" class="mt-6 flex flex-wrap items-center gap-2">
+        <form method="post" action="{% url 'django_trmnl_byos:preview-device-playlist' device.pk %}" class="mt-6 flex flex-wrap items-center gap-2">
           {% csrf_token %}
           <input type="hidden" name="action" value="add">
           <select name="dashboard" class="control" aria-label="Dashboard to add">

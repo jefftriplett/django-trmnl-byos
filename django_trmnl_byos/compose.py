@@ -58,7 +58,7 @@ def render_cell(cell, size, profile, orientation, dom_id):
         )
     if cell.show_title_bar and 'class="title_bar' not in markup:
         markup += render_to_string(
-            "django_trmnl/partials/title_bar.html",
+            "django_trmnl_byos/partials/title_bar.html",
             {"icon": plugin.icon, "title": plugin.title(instance), "instance_label": ""},
         )
     return mark_safe(markup)
@@ -101,7 +101,7 @@ def compose(dashboard, profile_key="og", orientation="landscape"):
     else:
         mashup_classes = f"mashup mashup--{dashboard.layout}"
     return render_to_string(
-        "django_trmnl/screen.html",
+        "django_trmnl_byos/screen.html",
         {
             "dashboard": dashboard,
             "width": width,

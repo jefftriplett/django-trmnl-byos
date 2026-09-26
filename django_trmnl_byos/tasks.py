@@ -46,7 +46,7 @@ def enqueue_render(dashboard_ids):
     from django_q.tasks import async_task
 
     for dashboard_id in sorted(set(dashboard_ids)):
-        async_task("django_trmnl.tasks.render_dashboard", dashboard_id, group="django-trmnl")
+        async_task("django_trmnl_byos.tasks.render_dashboard", dashboard_id, group="django-trmnl")
 
 
 def dashboards_for_instance(instance):
@@ -62,7 +62,7 @@ def ensure_schedule(**kwargs):
     Schedule.objects.get_or_create(
         name=TICK_NAME,
         defaults={
-            "func": "django_trmnl.tasks.tick",
+            "func": "django_trmnl_byos.tasks.tick",
             "schedule_type": Schedule.MINUTES,
             "minutes": 1,
             "repeats": -1,

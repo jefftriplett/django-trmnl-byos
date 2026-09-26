@@ -3,8 +3,8 @@ import json
 import pytest
 from django_q.models import OrmQ, Schedule
 
-from django_trmnl import tasks
-from django_trmnl.models import Device
+from django_trmnl_byos import tasks
+from django_trmnl_byos.models import Device
 
 from .conftest import fake_render
 
@@ -28,7 +28,7 @@ class FakeRenderer:
 @pytest.fixture
 def fake_renderer(monkeypatch):
     FakeRenderer.calls = []
-    monkeypatch.setattr("django_trmnl.rendering.Renderer", FakeRenderer)
+    monkeypatch.setattr("django_trmnl_byos.rendering.Renderer", FakeRenderer)
     return FakeRenderer
 
 
@@ -41,7 +41,7 @@ def queued(monkeypatch):
 
 def test_tick_schedule_is_created_on_migrate():
     schedule = Schedule.objects.get(name=tasks.TICK_NAME)
-    assert schedule.func == "django_trmnl.tasks.tick"
+    assert schedule.func == "django_trmnl_byos.tasks.tick"
     assert (schedule.schedule_type, schedule.minutes, schedule.repeats) == (Schedule.MINUTES, 1, -1)
 
 
@@ -62,12 +62,12 @@ def test_webhook_queues_a_render(client, queued, single, message):
         data=json.dumps({"merge_variables": {"message": "hi"}}),
         content_type="application/json",
     )
-    assert queued == [("django_trmnl.tasks.render_dashboard", (single.pk,))]
+    assert queued == [("django_trmnl_byos.tasks.render_dashboard", (single.pk,))]
 
 
 def test_display_without_image_queues_a_render(client, queued, device, single):
     client.get("/api/display", HTTP_ID=device.mac_address, HTTP_ACCESS_TOKEN=device.api_key)
-    assert ("django_trmnl.tasks.render_dashboard", (single.pk,)) in queued
+    assert ("django_trmnl_byos.tasks.render_dashboard", (single.pk,)) in queued
 
 
 def test_enqueue_uses_the_orm_broker(single):

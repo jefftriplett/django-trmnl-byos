@@ -3,7 +3,7 @@ import json
 import pytest
 from django.test import override_settings
 
-from django_trmnl.models import PluginInstance
+from django_trmnl_byos.models import PluginInstance
 
 pytestmark = pytest.mark.django_db
 
@@ -53,13 +53,13 @@ def test_bad_requests(client, instance):
     assert client.get("/api/custom_plugins/00000000-0000-0000-0000-000000000000").status_code == 404
 
 
-@override_settings(DJANGO_TRMNL={"WEBHOOK_MAX_BYTES": 50})
+@override_settings(DJANGO_TRMNL_BYOS={"WEBHOOK_MAX_BYTES": 50})
 def test_size_limit(client, instance):
     assert post(client, instance, {"merge_variables": {"text": "x" * 100}}).status_code == 413
 
 
 def test_webhook_marks_dashboards_stale(client, instance):
-    from django_trmnl.models import Dashboard, DashboardCell
+    from django_trmnl_byos.models import Dashboard, DashboardCell
 
     from .conftest import fake_render
 

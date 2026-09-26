@@ -1,7 +1,7 @@
 import pytest
 
-from django_trmnl.compose import compose
-from django_trmnl.models import Dashboard, DashboardCell
+from django_trmnl_byos.compose import compose
+from django_trmnl_byos.models import Dashboard, DashboardCell
 
 pytestmark = pytest.mark.django_db
 
@@ -46,7 +46,7 @@ def test_title_bar_can_be_hidden(message):
 
 
 def test_plugin_errors_render_in_the_cell():
-    from django_trmnl.models import PluginInstance
+    from django_trmnl_byos.models import PluginInstance
 
     broken = PluginInstance.objects.create(
         name="Broken", plugin="markup", settings={"markup": "{% if %}"}

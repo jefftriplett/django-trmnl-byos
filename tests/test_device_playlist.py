@@ -1,7 +1,7 @@
 import pytest
 from django.urls import reverse
 
-from django_trmnl.models import Dashboard, DashboardCell, Device, Playlist
+from django_trmnl_byos.models import Dashboard, DashboardCell, Device, Playlist
 
 from .conftest import fake_render
 
@@ -11,12 +11,12 @@ pytestmark = pytest.mark.django_db
 @pytest.fixture
 def queued(monkeypatch):
     calls = []
-    monkeypatch.setattr("django_trmnl.preview.enqueue_render", lambda ids: calls.extend(ids))
+    monkeypatch.setattr("django_trmnl_byos.preview.enqueue_render", lambda ids: calls.extend(ids))
     return calls
 
 
 def act(client, device, **data):
-    return client.post(reverse("django_trmnl:preview-device-playlist", args=[device.pk]), data)
+    return client.post(reverse("django_trmnl_byos:preview-device-playlist", args=[device.pk]), data)
 
 
 def order(playlist):
@@ -112,7 +112,7 @@ def test_needs_staff(client, device):
 
 
 def test_logs_are_flattened_newest_first(admin_client, device):
-    from django_trmnl.models import DeviceLog
+    from django_trmnl_byos.models import DeviceLog
 
     DeviceLog.objects.create(
         device=device,

@@ -2,7 +2,7 @@
 
 import django.db.models.deletion
 import django.utils.timezone
-import django_trmnl.models
+import django_trmnl_byos.models
 import uuid
 from django.db import migrations, models
 
@@ -38,8 +38,8 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(default='TRMNL', max_length=100)),
                 ('mac_address', models.CharField(max_length=17, unique=True)),
-                ('api_key', models.CharField(default=django_trmnl.models.generate_api_key, max_length=64, unique=True)),
-                ('friendly_id', models.CharField(default=django_trmnl.models.generate_friendly_id, max_length=6, unique=True)),
+                ('api_key', models.CharField(default=django_trmnl_byos.models.generate_api_key, max_length=64, unique=True)),
+                ('friendly_id', models.CharField(default=django_trmnl_byos.models.generate_friendly_id, max_length=6, unique=True)),
                 ('profile', models.CharField(choices=[('og', 'TRMNL OG (1-bit)'), ('og_2bit', 'TRMNL OG (2-bit, firmware 1.6+)'), ('x', 'TRMNL X (4-bit)')], default='og', max_length=20)),
                 ('orientation', models.CharField(choices=[('landscape', 'Landscape'), ('portrait', 'Portrait')], default='landscape', max_length=10)),
                 ('enabled', models.BooleanField(default=True)),
@@ -93,7 +93,7 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('message', models.JSONField()),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('device', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='logs', to='django_trmnl.device')),
+                ('device', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='logs', to='django_trmnl_byos.device')),
             ],
             options={
                 'ordering': ['-created_at'],
@@ -102,7 +102,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='device',
             name='playlist',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='devices', to='django_trmnl.playlist'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='devices', to='django_trmnl_byos.playlist'),
         ),
         migrations.CreateModel(
             name='PlaylistItem',
@@ -114,8 +114,8 @@ class Migration(migrations.Migration):
                 ('start_time', models.TimeField(blank=True, help_text='Only show from this local time.', null=True)),
                 ('end_time', models.TimeField(blank=True, help_text='Only show until this local time.', null=True)),
                 ('weekdays', models.CharField(blank=True, default='0123456', help_text='Days to show, as digits: 0 = Monday … 6 = Sunday.', max_length=7)),
-                ('dashboard', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='playlist_items', to='django_trmnl.dashboard')),
-                ('playlist', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='items', to='django_trmnl.playlist')),
+                ('dashboard', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='playlist_items', to='django_trmnl_byos.dashboard')),
+                ('playlist', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='items', to='django_trmnl_byos.playlist')),
             ],
             options={
                 'ordering': ['order', 'pk'],
@@ -131,8 +131,8 @@ class Migration(migrations.Migration):
                 ('col_span', models.PositiveSmallIntegerField(default=1, help_text='Fluid only: columns spanned.')),
                 ('row_span', models.PositiveSmallIntegerField(default=1, help_text='Fluid only: rows spanned.')),
                 ('show_title_bar', models.BooleanField(default=True)),
-                ('dashboard', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='cells', to='django_trmnl.dashboard')),
-                ('instance', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='cells', to='django_trmnl.plugininstance')),
+                ('dashboard', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='cells', to='django_trmnl_byos.dashboard')),
+                ('instance', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='cells', to='django_trmnl_byos.plugininstance')),
             ],
             options={
                 'ordering': ['position', 'row', 'col'],
@@ -149,7 +149,7 @@ class Migration(migrations.Migration):
                 ('html', models.TextField(blank=True)),
                 ('duration_ms', models.PositiveIntegerField(default=0)),
                 ('created_at', models.DateTimeField(db_index=True, default=django.utils.timezone.now)),
-                ('dashboard', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='renders', to='django_trmnl.dashboard')),
+                ('dashboard', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='renders', to='django_trmnl_byos.dashboard')),
             ],
             options={
                 'ordering': ['-created_at'],
@@ -158,6 +158,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='device',
             name='last_render',
-            field=models.ForeignKey(blank=True, editable=False, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to='django_trmnl.render'),
+            field=models.ForeignKey(blank=True, editable=False, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to='django_trmnl_byos.render'),
         ),
     ]

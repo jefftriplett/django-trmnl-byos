@@ -2,7 +2,7 @@ import logging
 
 import pytest
 
-from django_trmnl.models import Dashboard, DashboardCell, Device, Playlist, PlaylistItem, PluginInstance
+from django_trmnl_byos.models import Dashboard, DashboardCell, Device, Playlist, PlaylistItem, PluginInstance
 
 logging.disable(logging.CRITICAL)
 
@@ -68,7 +68,7 @@ def device(playlist):
 
 
 def fake_render(dashboard, profile="og", orientation="landscape", data=b"image"):
-    from django_trmnl.models import Render
+    from django_trmnl_byos.models import Render
 
     return Render.objects.create(
         dashboard=dashboard,

@@ -3,7 +3,7 @@ import json
 import pytest
 from django.test import override_settings
 
-from django_trmnl.models import Device, DeviceLog, Playlist
+from django_trmnl_byos.models import Device, DeviceLog, Playlist
 
 from .conftest import fake_render
 
@@ -36,7 +36,7 @@ def test_setup_requires_id(client):
     assert client.get("/api/setup").json()["status"] == 404
 
 
-@override_settings(DJANGO_TRMNL={"AUTO_PROVISION": False})
+@override_settings(DJANGO_TRMNL_BYOS={"AUTO_PROVISION": False})
 def test_setup_without_auto_provision(client):
     assert client.get("/api/setup", HTTP_ID="AA:BB:CC:00:11:22").json()["status"] == 404
     assert not Device.objects.exists()
@@ -91,7 +91,7 @@ def test_display_placeholders(client, device):
     assert image["Content-Type"] == "image/png"
 
 
-@override_settings(DJANGO_TRMNL={"BASE_URL": "http://trmnl.lan:8000/"})
+@override_settings(DJANGO_TRMNL_BYOS={"BASE_URL": "http://trmnl.lan:8000/"})
 def test_base_url_setting(client, device, single):
     render = fake_render(single)
     assert display(client, device)["image_url"] == f"http://trmnl.lan:8000/api/images/{render.pk}.png"
@@ -149,7 +149,7 @@ def test_display_refuses_new_token_once_device_has_checked_in(client, device, si
     assert device.api_key != "someone-else"
 
 
-@override_settings(DJANGO_TRMNL={"AUTO_PROVISION": False})
+@override_settings(DJANGO_TRMNL_BYOS={"AUTO_PROVISION": False})
 def test_display_does_not_adopt_without_auto_provision(client):
     body = client.get("/api/display", HTTP_ID="12:34:56:78:9A:BC", HTTP_ACCESS_TOKEN="abc").json()
     assert body["status"] == 202

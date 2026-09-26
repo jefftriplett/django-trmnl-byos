@@ -1,4 +1,4 @@
-"""Example project for django-trmnl. Fine for a home network; review before exposing it anywhere.
+"""Django project settings for django-trmnl. Fine for a home network; review before exposing it anywhere.
 
 Configured from the environment, following jefftriplett/django-startproject: compose.yml passes
 .env (from .env-dist) to the containers; running locally without it uses SQLite.
@@ -45,7 +45,7 @@ INSTALLED_APPS += [
 # Our apps
 
 INSTALLED_APPS += [
-    "django_trmnl",
+    "django_trmnl_byos",
 ]
 
 MIDDLEWARE = [
@@ -60,7 +60,7 @@ MIDDLEWARE = [
     "django_browser_reload.middleware.BrowserReloadMiddleware",
 ]
 
-ROOT_URLCONF = "example.urls"
+ROOT_URLCONF = "config.urls"
 
 TEMPLATES = [
     {
@@ -79,7 +79,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "example.wsgi.application"
+WSGI_APPLICATION = "config.wsgi.application"
 
 # Database: SQLite by default; compose.yml points DATABASE_URL at Postgres.
 
@@ -107,7 +107,7 @@ STATIC_ROOT = str(BASE_DIR.joinpath("staticfiles"))
 STATIC_URL = "/static/"
 # django-tailwind-cli builds the preview pages' CSS straight into the app's static
 # directory, so the compiled file ships with the package and host projects need no Tailwind.
-STATICFILES_DIRS = [BASE_DIR / "src" / "django_trmnl" / "static"]
+STATICFILES_DIRS = [BASE_DIR / "django_trmnl_byos" / "static"]
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -117,8 +117,8 @@ CACHES = {"default": env.dj_cache_url("CACHE_URL", default="locmem://")}
 # Tailwind CSS settings
 
 TAILWIND_CLI_AUTOMATIC_DOWNLOAD = env.bool("TAILWIND_CLI_AUTOMATIC_DOWNLOAD", default=True)
-TAILWIND_CLI_DIST_CSS = "django_trmnl/preview.css"
-TAILWIND_CLI_SRC_CSS = "src/django_trmnl/tailwind/preview.css"
+TAILWIND_CLI_DIST_CSS = "django_trmnl_byos/preview.css"
+TAILWIND_CLI_SRC_CSS = "django_trmnl_byos/tailwind/preview.css"
 TAILWIND_CLI_VERSION = env.str("TAILWIND_CLI_VERSION", default="4.3.3")
 
 # Django-Q2 settings: the database is the broker (manage.py qcluster).
@@ -152,7 +152,7 @@ PRODUCTION_PROCESSES = {
 
 # django-trmnl settings
 
-DJANGO_TRMNL = {
+DJANGO_TRMNL_BYOS = {
     "RENDER_INLINE": env.bool("TRMNL_RENDER_INLINE", default=False),
     "BASE_URL": env.str("TRMNL_BASE_URL", default="") or None,
     "PLAYWRIGHT_WS_ENDPOINT": env.str("PLAYWRIGHT_WS_ENDPOINT", default="") or None,
@@ -162,5 +162,5 @@ LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "handlers": {"console": {"class": "logging.StreamHandler"}},
-    "loggers": {"django_trmnl": {"handlers": ["console"], "level": "INFO"}},
+    "loggers": {"django_trmnl_byos": {"handlers": ["console"], "level": "INFO"}},
 }

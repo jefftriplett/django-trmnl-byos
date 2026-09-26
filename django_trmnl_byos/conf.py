@@ -1,4 +1,4 @@
-"""Settings for django-trmnl, read from ``settings.DJANGO_TRMNL`` (a dict)."""
+"""Settings for django-trmnl, read from ``settings.DJANGO_TRMNL_BYOS`` (a dict)."""
 
 from django.conf import settings
 
@@ -10,7 +10,7 @@ DEFAULTS = {
     "FRAMEWORK_JS_URL": f"https://trmnl.com/js/{FRAMEWORK_VERSION}/plugins.min.js",
     # Create a Device the first time an unknown MAC address calls /api/setup.
     "AUTO_PROVISION": True,
-    # Profile given to auto-provisioned devices (see django_trmnl.devices.PROFILES).
+    # Profile given to auto-provisioned devices (see django_trmnl_byos.devices.PROFILES).
     "DEFAULT_PROFILE": "og",
     # Seconds between device wake-ups when neither the device nor the playlist item sets one.
     "DEFAULT_REFRESH_RATE": 900,
@@ -34,7 +34,7 @@ DEFAULTS = {
 
 
 def get(name):
-    user = getattr(settings, "DJANGO_TRMNL", {}) or {}
+    user = getattr(settings, "DJANGO_TRMNL_BYOS", {}) or {}
     if name in user:
         return user[name]
     return DEFAULTS[name]

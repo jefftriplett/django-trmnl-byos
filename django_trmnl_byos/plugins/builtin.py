@@ -12,7 +12,7 @@ class MessagePlugin(Plugin):
     key = "message"
     name = "Message"
     description = "A title, a message and an optional author."
-    template_name = "django_trmnl/plugins/message.html"
+    template_name = "django_trmnl_byos/plugins/message.html"
     default_settings = {"title": "", "message": "Hello from django-trmnl.", "author": ""}
 
 
@@ -21,7 +21,7 @@ class ClockPlugin(Plugin):
     key = "clock"
     name = "Clock"
     description = "The time and date when the screen was rendered."
-    template_name = "django_trmnl/plugins/clock.html"
+    template_name = "django_trmnl_byos/plugins/clock.html"
     default_settings = {"timezone": "", "hour_format": "12", "show_timezone": True}
     help = {
         "timezone": 'A zone like "America/Chicago", a city like "Chicago", or "Central"/"CST". Blank uses TIME_ZONE.',
@@ -47,7 +47,7 @@ class MonthCalendarPlugin(Plugin):
     key = "month_calendar"
     name = "Month calendar"
     description = "This month as a grid, with today highlighted."
-    template_name = "django_trmnl/plugins/month_calendar.html"
+    template_name = "django_trmnl_byos/plugins/month_calendar.html"
     default_settings = {"first_weekday": 6, "timezone": ""}
 
     def get_context(self, instance, size, trmnl):
@@ -98,7 +98,7 @@ class WeatherPlugin(Plugin):
     key = "weather"
     name = "Weather"
     description = "Current conditions and a forecast from Open-Meteo. Set a ZIP code or place name."
-    template_name = "django_trmnl/plugins/weather.html"
+    template_name = "django_trmnl_byos/plugins/weather.html"
     polls = True
     default_settings = {
         "location": "66044",

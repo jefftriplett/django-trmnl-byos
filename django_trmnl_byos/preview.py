@@ -33,7 +33,7 @@ def index(request):
         item.online = item.is_online()
     return render(
         request,
-        "django_trmnl/preview/index.html",
+        "django_trmnl_byos/preview/index.html",
         {
             "dashboards": dashboards,
             "devices": devices,
@@ -76,7 +76,7 @@ def device(request, pk):
         next_wake = device.last_seen_at + timezone.timedelta(seconds=refresh)
     return render(
         request,
-        "django_trmnl/preview/device.html",
+        "django_trmnl_byos/preview/device.html",
         {
             "device": device,
             "online": device.is_online(),
@@ -128,12 +128,12 @@ def dashboard(request, pk):
     image_width, image_height = profile.image_size(orientation)
     return render(
         request,
-        "django_trmnl/preview/dashboard.html",
+        "django_trmnl_byos/preview/dashboard.html",
         {
             "dashboard": board,
             "profile": profile,
             "profiles": PROFILES.values(),
-            "profile_url": reverse("django_trmnl:preview-dashboard", args=[board.pk]),
+            "profile_url": reverse("django_trmnl_byos:preview-dashboard", args=[board.pk]),
             "orientation": orientation,
             "width": width,
             "height": height,
@@ -141,7 +141,7 @@ def dashboard(request, pk):
             "image_height": image_height,
             "scale": 1 / profile.pixel_ratio,
             "render": board.latest_render(profile.key, orientation),
-            "html_url": reverse("django_trmnl:preview-html", args=[board.pk])
+            "html_url": reverse("django_trmnl_byos:preview-html", args=[board.pk])
             + f"?profile={profile.key}&orientation={orientation}",
         },
     )
@@ -167,7 +167,7 @@ def dashboard_render(request, pk):
         messages.success(request, f"Rendered in {result.duration_ms} ms.")
     except Exception as error:
         messages.error(request, f"Render failed: {error}")
-    url = reverse("django_trmnl:preview-dashboard", args=[board.pk])
+    url = reverse("django_trmnl_byos:preview-dashboard", args=[board.pk])
     return redirect(f"{url}?profile={profile.key}&orientation={orientation}")
 
 
@@ -182,7 +182,7 @@ def device_playlist(request, pk):
     reorder, add or remove dashboards, render one, or choose what shows next."""
     device = get_object_or_404(Device.objects.select_related("playlist"), pk=pk)
     action = request.POST.get("action")
-    back = redirect("django_trmnl:preview-device", pk=device.pk)
+    back = redirect("django_trmnl_byos:preview-device", pk=device.pk)
 
     if action == "assign":
         playlist_id = request.POST.get("playlist")

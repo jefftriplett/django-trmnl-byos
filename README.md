@@ -129,8 +129,8 @@ web pages (`/trmnl/…`) are styled with Tailwind through
 [django-tailwind-cli](https://github.com/django-commons/django-tailwind-cli),
 with no Node needed:
 
-- Source: `src/django_trmnl/tailwind/preview.css`
-- Built file: `src/django_trmnl/static/django_trmnl/preview.css` (committed
+- Source: `django_trmnl_byos/tailwind/preview.css`
+- Built file: `django_trmnl_byos/static/django_trmnl_byos/preview.css` (committed
   and shipped with the package, so host projects don't need Tailwind)
 
 ```sh
@@ -166,7 +166,7 @@ demo shows.
 ## Writing a plugin
 
 ```python
-from django_trmnl.plugins import Plugin, registry
+from django_trmnl_byos.plugins import Plugin, registry
 
 @registry.register
 class HelloPlugin(Plugin):
@@ -184,7 +184,7 @@ mashup don't collide.
 
 ## Settings
 
-Put overrides in `DJANGO_TRMNL = {...}`. See `src/django_trmnl/conf.py` for
+Put overrides in `DJANGO_TRMNL_BYOS = {...}`. See `django_trmnl_byos/conf.py` for
 every option and its default.
 
 | Setting | Default |
@@ -198,15 +198,15 @@ every option and its default.
 | `PLAYWRIGHT_WS_ENDPOINT` | launch Chromium locally; or connect to `playwright run-server` |
 | `WEBHOOK_MAX_BYTES` | 64 KB |
 
-In the example project, the environment variables `TRMNL_RENDER_INLINE`,
+In the `config/` project, the environment variables `TRMNL_RENDER_INLINE`,
 `TRMNL_BASE_URL`, `PLAYWRIGHT_WS_ENDPOINT`, `TIME_ZONE`, `ALLOWED_HOSTS`,
 and `SECRET_KEY` set these.
 
 ## Using it in your own project
 
 ```python
-INSTALLED_APPS = [..., "django_trmnl"]
-urlpatterns = [..., path("", include("django_trmnl.urls"))]   # must be at the root: firmware calls /api/display
+INSTALLED_APPS = [..., "django_trmnl_byos"]
+urlpatterns = [..., path("", include("django_trmnl_byos.urls"))]   # must be at the root: firmware calls /api/display
 ```
 
 ## Security notes

@@ -1,33 +1,33 @@
-{% extends "django_trmnl/preview/base.html" %}
+{% extends "django_trmnl_byos/preview/base.html" %}
 {% block content %}
   <section class="mb-12">
     <div class="mb-4 flex items-baseline justify-between gap-4">
       <h2 class="text-2xl font-bold tracking-tight">Dashboards</h2>
-      <a class="link text-sm" href="{% url 'admin:django_trmnl_dashboard_add' %}">New dashboard</a>
+      <a class="link text-sm" href="{% url 'admin:django_trmnl_byos_dashboard_add' %}">New dashboard</a>
     </div>
     <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
       {% for dashboard in dashboards %}
         <article class="card flex flex-col">
-          <a href="{% url 'django_trmnl:preview-dashboard' dashboard.pk %}" class="block border-b border-ink bg-paper">
+          <a href="{% url 'django_trmnl_byos:preview-dashboard' dashboard.pk %}" class="block border-b border-ink bg-paper">
             {% if dashboard.thumbnail %}
-              <img src="{% url 'django_trmnl:image' dashboard.thumbnail.pk dashboard.thumbnail.extension %}" class="aspect-[5/3] w-full bg-white object-contain" alt="{{ dashboard.name }}">
+              <img src="{% url 'django_trmnl_byos:image' dashboard.thumbnail.pk dashboard.thumbnail.extension %}" class="aspect-[5/3] w-full bg-white object-contain" alt="{{ dashboard.name }}">
             {% else %}
               <div class="grid aspect-[5/3] place-items-center text-sm text-muted">not rendered yet</div>
             {% endif %}
           </a>
           <div class="flex flex-1 flex-col gap-2 p-4">
             <div class="flex items-start justify-between gap-2">
-              <a class="text-lg font-bold hover:underline" href="{% url 'django_trmnl:preview-dashboard' dashboard.pk %}">{{ dashboard.name }}</a>
+              <a class="text-lg font-bold hover:underline" href="{% url 'django_trmnl_byos:preview-dashboard' dashboard.pk %}">{{ dashboard.name }}</a>
               <span class="chip shrink-0">{{ dashboard.layout }}</span>
             </div>
             <p class="text-sm text-muted">{% for cell in dashboard.cells.all %}{{ cell.instance.name }}{% if not forloop.last %} · {% endif %}{% empty %}No plugins yet{% endfor %}</p>
             <div class="mt-auto flex items-center justify-between gap-2 pt-2">
               <div class="segmented">
-                <a href="{% url 'django_trmnl:preview-dashboard' dashboard.pk %}?profile=og">OG</a>
-                <a href="{% url 'django_trmnl:preview-dashboard' dashboard.pk %}?profile=og_2bit">2-bit</a>
-                <a href="{% url 'django_trmnl:preview-dashboard' dashboard.pk %}?profile=x">X</a>
+                <a href="{% url 'django_trmnl_byos:preview-dashboard' dashboard.pk %}?profile=og">OG</a>
+                <a href="{% url 'django_trmnl_byos:preview-dashboard' dashboard.pk %}?profile=og_2bit">2-bit</a>
+                <a href="{% url 'django_trmnl_byos:preview-dashboard' dashboard.pk %}?profile=x">X</a>
               </div>
-              <a class="link text-sm" href="{% url 'admin:django_trmnl_dashboard_change' dashboard.pk %}">Edit</a>
+              <a class="link text-sm" href="{% url 'admin:django_trmnl_byos_dashboard_change' dashboard.pk %}">Edit</a>
             </div>
           </div>
         </article>
@@ -41,10 +41,10 @@
     <h2 class="mb-4 text-2xl font-bold tracking-tight">Devices</h2>
     <div class="grid gap-6 md:grid-cols-2">
       {% for device in devices %}
-        <a href="{% url 'django_trmnl:preview-device' device.pk %}" class="card group flex gap-4 p-4 transition hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0_0_var(--color-ink)]">
+        <a href="{% url 'django_trmnl_byos:preview-device' device.pk %}" class="card group flex gap-4 p-4 transition hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0_0_var(--color-ink)]">
           <div class="w-40 shrink-0">
             {% if device.last_render %}
-              <img src="{% url 'django_trmnl:image' device.last_render.pk device.last_render.extension %}" class="frame w-full" alt="">
+              <img src="{% url 'django_trmnl_byos:image' device.last_render.pk device.last_render.extension %}" class="frame w-full" alt="">
             {% else %}
               <div class="grid aspect-[5/3] place-items-center border border-dashed border-line text-xs text-muted">no screen yet</div>
             {% endif %}

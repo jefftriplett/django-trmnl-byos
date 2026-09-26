@@ -234,7 +234,7 @@ def display(request):
 
     Device.objects.filter(pk=device.pk).update(last_render=render)
     return display_response(
-        absolute_url(request, reverse("django_trmnl:image", args=[render.pk, render.extension])),
+        absolute_url(request, reverse("django_trmnl_byos:image", args=[render.pk, render.extension])),
         render.filename,
         item.refresh_rate or device.refresh_rate,
     )
@@ -257,7 +257,7 @@ def current_screen(request):
         filename = None
         rendered_at = None
     else:
-        image_url = absolute_url(request, reverse("django_trmnl:image", args=[render.pk, render.extension]))
+        image_url = absolute_url(request, reverse("django_trmnl_byos:image", args=[render.pk, render.extension]))
         filename = render.filename
         rendered_at = render.created_at.isoformat()
     return JsonResponse(
@@ -273,7 +273,7 @@ def current_screen(request):
 
 def placeholder_url(request, device, state):
     profile = device.get_profile()
-    path = reverse("django_trmnl:placeholder", args=[device.friendly_id, state, profile.image_format])
+    path = reverse("django_trmnl_byos:placeholder", args=[device.friendly_id, state, profile.image_format])
     return absolute_url(request, path)
 
 

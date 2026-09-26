@@ -3,8 +3,8 @@ import io
 import pytest
 from PIL import Image
 
-from django_trmnl.devices import PROFILES
-from django_trmnl.images import encode_bmp, encode_png, placeholder, to_device_image
+from django_trmnl_byos.devices import PROFILES
+from django_trmnl_byos.images import encode_bmp, encode_png, placeholder, to_device_image
 
 
 def gradient(width, height):

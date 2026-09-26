@@ -1,5 +1,5 @@
 [project]
-name = "django-trmnl"
+name = "django-trmnl-byos"
 version = "0.1.0"
 description = "Drive TRMNL e-ink dashboards from Django: BYOS device API, plugins, playlists, and fluid mashups."
 readme = "README.md"
@@ -27,7 +27,7 @@ dev = [
     "pytest-django>=4.9",
     "python-liquid>=2.0",
 ]
-example = [
+project = [
     "django-browser-reload>=1.21.0",
     "django-health-check>=4.0.0",
     "django-prodserver[gunicorn]>=3.0.0",
@@ -38,18 +38,20 @@ example = [
 ]
 
 [tool.uv]
-# The example project's dependencies install by default for local development.
-default-groups = ["dev", "example"]
+# Like jefftriplett/django-startproject: apps live at the repo root next to config/.
+package = false
+# The project's (config/) dependencies install by default for local development.
+default-groups = ["dev", "project"]
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/django_trmnl"]
+packages = ["django_trmnl_byos"]
 
 [tool.hatch.build.targets.sdist]
-include = ["src/django_trmnl", "README.md", "NOTES.md"]
+include = ["django_trmnl_byos", "README.md", "NOTES.md"]
 
 [tool.coverage.run]
 omit = [
@@ -61,7 +63,7 @@ omit = [
 ]
 
 [tool.pytest.ini_options]
-DJANGO_SETTINGS_MODULE = "example.settings"
+DJANGO_SETTINGS_MODULE = "config.settings"
 pythonpath = ["."]
 testpaths = ["tests"]
 markers = ["render: needs a Playwright Chromium browser (run with -m render)"]

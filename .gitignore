@@ -1,7 +1,7 @@
 __pycache__/
 *.pyc
 .venv/
-db.sqlite3
+db.sqlite3*
 staticfiles/
 renders/
 dist/
@@ -9,3 +9,4 @@ dist/
 .django_tailwind_cli/
 byos_django-git/
 .env
+CLAUDE.md

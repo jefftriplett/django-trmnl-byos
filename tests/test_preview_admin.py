@@ -24,15 +24,15 @@ def test_preview_needs_staff(client, fluid):
     "name", ["plugininstance", "dashboard", "playlist", "device", "render", "devicelog"]
 )
 def test_admin_pages_load(admin_client, name, fluid, device):
-    assert admin_client.get(reverse(f"admin:django_trmnl_{name}_changelist")).status_code == 200
+    assert admin_client.get(reverse(f"admin:django_trmnl_byos_{name}_changelist")).status_code == 200
 
 
 def test_admin_change_pages_load(admin_client, fluid, device, message):
     for url in [
-        reverse("admin:django_trmnl_dashboard_change", args=[fluid.pk]),
-        reverse("admin:django_trmnl_device_change", args=[device.pk]),
-        reverse("admin:django_trmnl_plugininstance_change", args=[message.pk]),
-        reverse("admin:django_trmnl_dashboard_add"),
+        reverse("admin:django_trmnl_byos_dashboard_change", args=[fluid.pk]),
+        reverse("admin:django_trmnl_byos_device_change", args=[device.pk]),
+        reverse("admin:django_trmnl_byos_plugininstance_change", args=[message.pk]),
+        reverse("admin:django_trmnl_byos_dashboard_add"),
     ]:
         assert admin_client.get(url).status_code == 200
 
@@ -59,13 +59,13 @@ def test_admin_rejects_overlapping_fluid_cells(admin_client, message, clock):
                 f"cells-{index}-show_title_bar": "on",
             }
         )
-    response = admin_client.post(reverse("admin:django_trmnl_dashboard_add"), data)
+    response = admin_client.post(reverse("admin:django_trmnl_byos_dashboard_add"), data)
     assert response.status_code == 200
     assert b"overlaps" in response.content
 
 
 def test_device_page(admin_client, device, single, fluid):
-    from django_trmnl.models import DeviceLog
+    from django_trmnl_byos.models import DeviceLog
 
     render = fake_render(single)
     device.last_render = render
@@ -83,11 +83,11 @@ def test_device_page(admin_client, device, single, fluid):
 
 def test_preview_pages_use_built_css(admin_client, fluid):
     page = admin_client.get("/trmnl/").content.decode()
-    assert "/static/django_trmnl/preview.css" in page
+    assert "/static/django_trmnl_byos/preview.css" in page
 
 
 def test_health_and_version(client):
-    from django_trmnl import __version__
+    from django_trmnl_byos import __version__
 
     assert client.get("/health/").status_code == 200
     assert client.get("/apis/version/").json() == {"version": __version__}

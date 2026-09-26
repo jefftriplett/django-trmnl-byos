@@ -1,7 +1,7 @@
 import pytest
 
-from django_trmnl.models import PluginInstance
-from django_trmnl.plugins import PluginError, registry, render_markup
+from django_trmnl_byos.models import PluginInstance
+from django_trmnl_byos.plugins import PluginError, registry, render_markup
 
 pytestmark = pytest.mark.django_db
 
@@ -82,7 +82,7 @@ def test_weather_fetch_parses_open_meteo(monkeypatch):
         urls.append(url)
         return geocode if "geocoding-api" in url else payload
 
-    monkeypatch.setattr("django_trmnl.plugins.builtin.fetch_json", fake_fetch)
+    monkeypatch.setattr("django_trmnl_byos.plugins.builtin.fetch_json", fake_fetch)
     weather = PluginInstance.objects.create(name="W", plugin="weather", settings={"location": "Lawrence, KS"})
     data = weather.get_plugin().fetch(weather)
     assert data["place"] == {"name": "Lawrence, KS", "latitude": 38.97167, "longitude": -95.23525}
@@ -108,7 +108,7 @@ def test_weather_fetch_parses_open_meteo(monkeypatch):
     ],
 )
 def test_resolve_timezone(name, zone):
-    from django_trmnl.plugins.builtin import resolve_timezone
+    from django_trmnl_byos.plugins.builtin import resolve_timezone
 
     assert str(resolve_timezone(name)) == zone
 
@@ -122,7 +122,7 @@ def test_clock_shows_time_in_its_timezone():
 def test_weather_uses_coordinates_without_geocoding(monkeypatch):
     urls = []
     monkeypatch.setattr(
-        "django_trmnl.plugins.builtin.fetch_json",
+        "django_trmnl_byos.plugins.builtin.fetch_json",
         lambda url, headers=None: urls.append(url)
         or {
             "current": {"temperature_2m": 50, "apparent_temperature": 48, "weather_code": 3, "wind_speed_10m": 3, "relative_humidity_2m": 60},

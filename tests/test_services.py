@@ -3,8 +3,8 @@ from datetime import datetime, time, timedelta
 import pytest
 from django.utils import timezone
 
-from django_trmnl.models import Device, PlaylistItem, PluginInstance
-from django_trmnl.services import refresh_instance, render_targets, run_once
+from django_trmnl_byos.models import Device, PlaylistItem, PluginInstance
+from django_trmnl_byos.services import refresh_instance, render_targets, run_once
 
 from .conftest import fake_render
 
@@ -76,7 +76,7 @@ def test_refresh_instance_records_errors(monkeypatch):
     assert "url" in instance.last_error
     assert not instance.refresh_due()
 
-    monkeypatch.setattr("django_trmnl.plugins.builtin.fetch_json", lambda url, headers=None: [1, 2])
+    monkeypatch.setattr("django_trmnl_byos.plugins.builtin.fetch_json", lambda url, headers=None: [1, 2])
     instance.settings = {"url": "https://example.com/data.json"}
     instance.data_refreshed_at = timezone.now() - timedelta(hours=1)
     instance.save()

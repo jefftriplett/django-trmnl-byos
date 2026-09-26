@@ -1,8 +1,8 @@
 from django.apps import AppConfig
 
 
-class DjangoTrmnlConfig(AppConfig):
-    name = "django_trmnl"
+class DjangoTrmnlByosConfig(AppConfig):
+    name = "django_trmnl_byos"
     verbose_name = "TRMNL"
     default_auto_field = "django.db.models.BigAutoField"
 

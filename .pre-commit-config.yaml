@@ -6,7 +6,7 @@ exclude: |
       .devcontainer/devcontainer.json|
       .github/contributors.json|
       .vscode/launch.json|
-      src/django_trmnl/static/.*|
+      django_trmnl_byos/static/.*|
       staticfiles/.*
   )$
 

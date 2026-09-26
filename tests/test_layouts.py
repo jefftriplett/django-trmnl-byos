@@ -1,9 +1,9 @@
 import pytest
 from django.core.exceptions import ValidationError
 
-from django_trmnl import layouts
-from django_trmnl.layouts import Placement
-from django_trmnl.models import Dashboard, DashboardCell
+from django_trmnl_byos import layouts
+from django_trmnl_byos.layouts import Placement
+from django_trmnl_byos.models import Dashboard, DashboardCell
 
 
 @pytest.mark.parametrize(

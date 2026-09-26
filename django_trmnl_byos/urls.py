@@ -1,13 +1,13 @@
 """Include at the site root: TRMNL firmware calls ``<base url>/api/display``.
 
-    path("", include("django_trmnl.urls")),
+    path("", include("django_trmnl_byos.urls")),
 """
 
 from django.urls import path, re_path
 
 from . import preview, views
 
-app_name = "django_trmnl"
+app_name = "django_trmnl_byos"
 
 urlpatterns = [
     # Firmware calls these with and without a trailing slash; accept both, no redirects.
