@@ -14,8 +14,10 @@ classifiers = [
 dependencies = [
     "django>=6.0,<6.1",
     "django-q2>=1.8",
+    "icalendar>=7.0",
     "pillow>=11.0",
     "playwright>=1.50",
+    "recurring-ical-events>=3.8",
 ]
 
 [project.optional-dependencies]

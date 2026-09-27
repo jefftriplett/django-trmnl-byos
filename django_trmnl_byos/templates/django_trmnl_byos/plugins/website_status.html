@@ -1,0 +1,28 @@
+{% if not sites %}
+  {% include "django_trmnl_byos/plugins/_empty.html" with message="No checks yet." %}
+{% elif size == 'quadrant' %}
+  <div class="layout layout--col layout--center gap--small">
+    <span class="value value--xlarge" data-fit-value="true">{% if down_count %}{{ down_count }} down{% else %}All up{% endif %}</span>
+    <span class="label">{{ sites|length }} site{{ sites|length|pluralize }}{% if checked_label %} · {{ checked_label }}{% endif %}</span>
+  </div>
+{% else %}
+  <div class="layout layout--col layout--top layout--stretch-x gap--small">
+    <span class="title title--small">{% if down_count %}{{ down_count }} of {{ sites|length }} down{% else %}All {{ sites|length }} up{% endif %}{% if checked_label %} · {{ checked_label }}{% endif %}</span>
+    <div class="columns" data-overflow-max-cols="{% if size == 'full' %}2{% else %}1{% endif %}">
+      <div class="column">
+        {% for site in sites %}
+          <div class="item">
+            <div class="meta"></div>
+            <div class="content">
+              <div class="flex flex--row gap--small">
+                <span class="label label--small{% if not site.up %} label--inverted{% endif %}">{% if site.up %}UP{% else %}DOWN{% endif %}</span>
+                <span class="title title--small" data-clamp="1">{{ site.name }}</span>
+              </div>
+              <span class="description" data-clamp="1">{% if site.up %}{{ site.ms }} ms{% else %}{{ site.error }}{% endif %}</span>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+{% endif %}

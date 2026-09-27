@@ -1,0 +1,19 @@
+{% if not upcoming %}
+  {% include "django_trmnl_byos/plugins/_empty.html" with message="Nothing on the calendar." %}
+{% else %}
+  <div class="layout layout--col layout--top layout--stretch-x">
+    <div class="columns" data-overflow-max-cols="{% if size == 'full' %}2{% else %}1{% endif %}" data-overflow-counter="true">
+      <div class="column">
+        {% for event in upcoming %}
+          <div class="item">
+            <div class="meta"></div>
+            <div class="content">
+              <span class="title title--small" data-clamp="1">{{ event.title }}</span>
+              <span class="description" data-clamp="1">{{ event.day_label }} · {{ event.when }}{% if settings.show_location and event.location %} · {{ event.location }}{% endif %}</span>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+{% endif %}

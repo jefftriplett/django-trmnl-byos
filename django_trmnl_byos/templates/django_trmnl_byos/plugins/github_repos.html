@@ -1,0 +1,29 @@
+{% if not repos %}
+  {% include "django_trmnl_byos/plugins/_empty.html" with message="No repository data yet." %}
+{% elif size == 'quadrant' or repos|length == 1 %}
+  {% with repo=repos.0 %}
+    <div class="layout layout--col layout--center gap--small">
+      <span class="value value--tnums {% if size == 'quadrant' %}value--xlarge{% else %}value--xxxlarge{% endif %}" data-fit-value="true">★ {{ repo.stars }}</span>
+      <span class="label" data-clamp="1">{{ repo.name }}</span>
+      {% if size != 'quadrant' %}
+        <span class="description">{{ repo.open_issues }} open issue{{ repo.open_issues|pluralize }}/PR{{ repo.open_issues|pluralize }} · {{ repo.forks }} fork{{ repo.forks|pluralize }}{% if repo.release %} · {{ repo.release.tag }}{% endif %}</span>
+      {% endif %}
+    </div>
+  {% endwith %}
+{% else %}
+  <div class="layout layout--col layout--top layout--stretch-x">
+    <table class="table {% if size == 'full' %}table--base{% else %}table--small{% endif %}" data-table-limit="true">
+      <thead><tr><th><span class="title title--small">Repo</span></th><th><span class="title title--small">★</span></th><th><span class="title title--small">Issues</span></th>{% if size == 'full' %}<th><span class="title title--small">Release</span></th>{% endif %}</tr></thead>
+      <tbody>
+        {% for repo in repos %}
+          <tr>
+            <td><span class="label" data-clamp="1">{{ repo.name }}</span></td>
+            <td><span class="label">{{ repo.stars }}</span></td>
+            <td><span class="label">{{ repo.open_issues }}</span></td>
+            {% if size == 'full' %}<td><span class="label">{{ repo.release.tag|default:"—" }}</span></td>{% endif %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endif %}

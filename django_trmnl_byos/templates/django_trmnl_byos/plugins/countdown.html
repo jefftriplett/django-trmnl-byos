@@ -1,0 +1,26 @@
+{% if not countdowns %}
+  {% include "django_trmnl_byos/plugins/_empty.html" with message="No upcoming dates." %}
+{% else %}
+  {% with first=countdowns.0 %}
+    <div class="layout {% if size == 'full' and countdowns|length > 1 %}layout--row{% else %}layout--col{% endif %} layout--center gap--large">
+      <div class="flex flex--col flex--center-x gap--small">
+        <span class="value value--tnums {% if size == 'quadrant' %}value--xlarge{% else %}value--xxxlarge lg:value--giga{% endif %}" data-fit-value="true">{% if first.days == 0 %}Today{% else %}{{ first.abs_days }}{% endif %}</span>
+        <span class="label{% if size == 'full' %} label--large{% endif %}">{% if first.days == 0 %}{{ first.name }}{% elif first.days > 0 %}day{{ first.abs_days|pluralize }} until {{ first.name }}{% else %}day{{ first.abs_days|pluralize }} since {{ first.name }}{% endif %}</span>
+        {% if size != 'quadrant' %}<span class="description">{{ first.date|date:"l, F j, Y" }}</span>{% endif %}
+      </div>
+      {% if size != 'quadrant' and countdowns|length > 1 %}
+        <div class="flex flex--col gap--xsmall">
+          {% for countdown in countdowns|slice:"1:6" %}
+            <div class="item">
+              <div class="meta"></div>
+              <div class="content">
+                <span class="title title--small" data-clamp="1">{{ countdown.name }}</span>
+                <span class="description">{% if countdown.days == 0 %}today{% elif countdown.days > 0 %}in {{ countdown.days }} day{{ countdown.days|pluralize }}{% else %}{{ countdown.abs_days }} day{{ countdown.abs_days|pluralize }} ago{% endif %} · {{ countdown.date|date:"M j" }}</span>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+  {% endwith %}
+{% endif %}

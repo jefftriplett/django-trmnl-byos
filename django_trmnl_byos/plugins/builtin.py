@@ -28,6 +28,7 @@ class ClockPlugin(Plugin):
         "hour_format": '"12" or "24".',
         "show_timezone": "Show the zone abbreviation (CDT, EST, …) under the date.",
     }
+    choices = {"hour_format": ["12", "24"]}
 
     def clean_settings(self, settings):
         resolve_timezone(settings.get("timezone", ""))
@@ -120,6 +121,7 @@ class WeatherPlugin(Plugin):
         "forecast_days": "Days of forecast to show, 0-7.",
         "show_details": "Show feels-like, humidity and wind.",
     }
+    choices = {"units": ["fahrenheit", "celsius"]}
 
     def clean_settings(self, settings):
         if settings.get("units", "fahrenheit") not in ("fahrenheit", "celsius"):
@@ -230,6 +232,7 @@ class MarkupPlugin(Plugin):
     name = "Custom markup"
     description = "Your own template, fed by the webhook or by hand."
     default_settings = {"engine": "django", "markup": "", "shared": ""}
+    choices = {"engine": ["django", "liquid"]}
 
     def markup_for(self, settings, size):
         markup = settings.get("markup") or ""

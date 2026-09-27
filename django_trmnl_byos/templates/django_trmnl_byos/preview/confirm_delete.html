@@ -1,0 +1,13 @@
+{% extends "django_trmnl_byos/preview/base.html" %}
+{% block title %}Delete {{ object }} · django-trmnl-byos{% endblock %}
+{% block content %}
+  <div class="card mx-auto max-w-xl p-6">
+    <h2 class="text-2xl font-bold tracking-tight">Delete {{ kind }} “{{ object }}”?</h2>
+    <p class="mt-2 text-muted">This can't be undone.{% if consequence %} {{ consequence }}{% endif %}</p>
+    <form method="post" class="mt-6 flex items-center gap-3">
+      {% csrf_token %}
+      <button type="submit" class="button button-primary">Delete</button>
+      <a class="link" href="{{ cancel_url }}">Cancel</a>
+    </form>
+  </div>
+{% endblock %}

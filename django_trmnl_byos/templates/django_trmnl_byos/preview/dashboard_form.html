@@ -1,0 +1,150 @@
+{% extends "django_trmnl_byos/preview/base.html" %}
+{% block title %}{% if dashboard.pk %}{{ dashboard.name }}{% else %}New dashboard{% endif %} · django-trmnl-byos{% endblock %}
+{% block content %}
+  <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <p class="eyebrow mb-1"><a class="link" href="{% url 'django_trmnl_byos:preview-index' %}">Dashboards</a></p>
+      <h2 class="text-3xl font-bold tracking-tight">{% if dashboard.pk %}{{ dashboard.name }}{% else %}New dashboard{% endif %}</h2>
+      <p class="mt-1 text-muted">A dashboard is one screen: a single plugin, or several arranged as a mashup.</p>
+    </div>
+    {% if dashboard.pk %}
+      <div class="flex flex-wrap items-center gap-3">
+        <a class="button" href="{% url 'django_trmnl_byos:preview-dashboard' dashboard.pk %}">Preview on devices</a>
+        <a class="link text-sm" href="{% url 'django_trmnl_byos:editor-dashboard-delete' dashboard.pk %}">Delete</a>
+      </div>
+    {% endif %}
+  </div>
+
+  {% if not has_plugins %}
+    <p class="errorlist">You don't have any plugins yet. <a class="link" href="{% url 'django_trmnl_byos:editor-plugin-choose' %}">Create one first</a>, then come back to put it on a screen.</p>
+  {% endif %}
+
+  <form method="post" id="dashboard-form" class="group space-y-6" data-fluid="{% if fluid %}true{% else %}false{% endif %}">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+
+    <section class="card">
+      <div class="card-title">Name</div>
+      <div class="p-5">{% include "django_trmnl_byos/preview/_field.html" with field=form.name %}</div>
+    </section>
+
+    <section class="card">
+      <div class="card-title">Layout</div>
+      <div class="p-5">
+        <div class="grid grid-cols-3 gap-4 sm:grid-cols-5 lg:grid-cols-9">
+          {% for option in layout_options %}
+            <label class="cursor-pointer text-center">
+              <input type="radio" name="layout" value="{{ option.value }}" data-slots="{{ option.cells|length }}" class="peer sr-only"{% if option.selected %} checked{% endif %}>
+              <span class="block border-2 border-line bg-white p-1.5 peer-checked:border-ink peer-checked:shadow-hard-sm peer-focus-visible:outline-2 peer-focus-visible:outline-ink">
+                <span class="grid aspect-[5/3] gap-1" style="grid-template-columns: repeat({{ option.grid }}, 1fr); grid-template-rows: repeat({{ option.grid }}, 1fr);">
+                  {% for cell in option.cells %}<span class="grid place-items-center bg-ink text-[10px] font-bold text-white" style="{{ cell.style }}">{{ cell.number }}</span>{% endfor %}
+                </span>
+              </span>
+              <span class="mt-1 block text-xs font-semibold">{{ option.label }}</span>
+            </label>
+          {% endfor %}
+        </div>
+        {% for error in form.layout.errors %}<p class="mt-2 text-sm text-danger">{{ error }}</p>{% endfor %}
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-title">
+        Plugins
+        <span class="text-xs font-normal tracking-normal text-muted normal-case">
+          <span class="group-data-[fluid=true]:hidden">Slot numbers match the layout picture.</span>
+          <span class="group-data-[fluid=false]:hidden">Place each plugin on the 3×3 grid: start column/row, then how many columns/rows it spans.</span>
+        </span>
+      </div>
+      <div class="p-5">
+        {{ cells.management_form }}
+        {% for error in cells.non_form_errors %}<p class="errorlist">{{ error }}</p>{% endfor %}
+        <div class="overflow-x-auto">
+          <table class="data-table">
+            <tr>
+              <th>Plugin</th>
+              <th class="group-data-[fluid=true]:hidden">Slot</th>
+              <th class="group-data-[fluid=false]:hidden">Column</th>
+              <th class="group-data-[fluid=false]:hidden">Row</th>
+              <th class="group-data-[fluid=false]:hidden">Columns wide</th>
+              <th class="group-data-[fluid=false]:hidden">Rows tall</th>
+              <th>Title bar</th>
+              <th>Remove</th>
+            </tr>
+            {% for cell in cells %}
+              <tr class="cell-row field" data-index="{{ forloop.counter0 }}" data-filled="{% if cell.id.value %}true{% else %}false{% endif %}">
+                <td class="min-w-48">
+                  {% for hidden in cell.hidden_fields %}{{ hidden }}{% endfor %}
+                  {{ cell.instance }}
+                  {% for error in cell.non_field_errors %}<p class="mt-1 text-sm text-danger">{{ error }}</p>{% endfor %}
+                  {% for error in cell.instance.errors %}<p class="mt-1 text-sm text-danger">{{ error }}</p>{% endfor %}
+                </td>
+                <td class="group-data-[fluid=true]:hidden">{{ cell.position }}{% for error in cell.position.errors %}<p class="mt-1 text-sm text-danger">{{ error }}</p>{% endfor %}</td>
+                <td class="group-data-[fluid=false]:hidden">{{ cell.col }}</td>
+                <td class="group-data-[fluid=false]:hidden">{{ cell.row }}</td>
+                <td class="group-data-[fluid=false]:hidden">{{ cell.col_span }}</td>
+                <td class="group-data-[fluid=false]:hidden">{{ cell.row_span }}</td>
+                <td class="text-center">{{ cell.show_title_bar }}</td>
+                <td class="text-center">{% if cell.id.value %}{{ cell.DELETE }}{% endif %}</td>
+              </tr>
+            {% endfor %}
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <details class="card">
+      <summary class="card-title cursor-pointer">Screen options</summary>
+      <div class="grid gap-4 p-5 sm:grid-cols-2">
+        {% include "django_trmnl_byos/preview/_field.html" with field=form.backdrop %}
+        {% include "django_trmnl_byos/preview/_field.html" with field=form.dark_mode %}
+        {% include "django_trmnl_byos/preview/_field.html" with field=form.no_bleed %}
+        {% include "django_trmnl_byos/preview/_field.html" with field=form.extra_screen_classes %}
+      </div>
+    </details>
+
+    <div class="flex items-center gap-3">
+      <button type="submit" class="button button-primary">{% if dashboard.pk %}Save{% else %}Create dashboard{% endif %}</button>
+      <a class="link text-sm" href="{% url 'django_trmnl_byos:preview-index' %}">Cancel</a>
+    </div>
+  </form>
+
+  {% if dashboard.pk %}
+    <section class="card mt-10 inline-block">
+      <div class="card-title">Preview <span class="text-xs font-normal tracking-normal text-muted normal-case">TRMNL OG, 800×480 · saved version</span></div>
+      <div class="p-4">
+        <iframe src="{{ preview_url }}" width="800" height="480" class="frame" title="Dashboard preview"></iframe>
+      </div>
+    </section>
+  {% endif %}
+
+  <script>
+    (function () {
+      var form = document.getElementById("dashboard-form");
+      var rows = form.querySelectorAll(".cell-row");
+
+      function update() {
+        var picked = form.querySelector('input[name="layout"]:checked');
+        if (!picked) return;
+        var fluid = picked.value === "3x3";
+        form.dataset.fluid = fluid ? "true" : "false";
+        // Show every filled row, plus enough blank rows to fill the layout.
+        var room = fluid ? 9 : Number(picked.dataset.slots);
+        var filled = 0;
+        rows.forEach(function (row) {
+          if (row.querySelector("select").value) filled += 1;
+        });
+        var blanks = Math.max(0, room - filled);
+        rows.forEach(function (row) {
+          var hasPlugin = !!row.querySelector("select").value;
+          var show = hasPlugin || blanks > 0;
+          if (!hasPlugin && show) blanks -= 1;
+          row.hidden = !show;
+        });
+      }
+
+      form.addEventListener("change", update);
+      update();
+    })();
+  </script>
+{% endblock %}

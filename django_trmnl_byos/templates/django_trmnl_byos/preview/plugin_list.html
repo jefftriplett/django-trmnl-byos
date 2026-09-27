@@ -1,0 +1,33 @@
+{% extends "django_trmnl_byos/preview/base.html" %}
+{% block title %}Plugins · django-trmnl-byos{% endblock %}
+{% block content %}
+  <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <p class="eyebrow mb-1">Plugins</p>
+      <h2 class="text-3xl font-bold tracking-tight">Your plugins</h2>
+      <p class="mt-1 text-muted">Each is a configured source of content. Put them on screens from a dashboard.</p>
+    </div>
+    <a class="button button-primary" href="{% url 'django_trmnl_byos:editor-plugin-choose' %}">New plugin</a>
+  </div>
+  <div class="card overflow-x-auto">
+    <table class="data-table">
+      <tr><th>Name</th><th>Type</th><th>On dashboards</th><th>Data</th></tr>
+      {% for instance in instances %}
+        <tr>
+          <td><a class="link font-semibold" href="{% url 'django_trmnl_byos:editor-plugin' instance.pk %}">{{ instance.name }}</a></td>
+          <td class="text-muted">{{ instance.plugin_name }}</td>
+          <td>
+            {% for cell in instance.cells.all %}{% ifchanged cell.dashboard_id %}<a class="link" href="{% url 'django_trmnl_byos:editor-dashboard' cell.dashboard_id %}">{{ cell.dashboard.name }}</a>{% if not forloop.last %}, {% endif %}{% endifchanged %}{% empty %}<span class="text-muted">none</span>{% endfor %}
+          </td>
+          <td class="whitespace-nowrap">
+            {% if instance.last_error %}<span class="chip bg-ink text-white" title="{{ instance.last_error }}">Error</span>
+            {% elif instance.data_refreshed_at %}<span class="text-muted">refreshed {{ instance.data_refreshed_at|timesince }} ago</span>
+            {% else %}<span class="text-muted">—</span>{% endif %}
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="4" class="text-muted">No plugins yet. <a class="link" href="{% url 'django_trmnl_byos:editor-plugin-choose' %}">Add your first one</a>.</td></tr>
+      {% endfor %}
+    </table>
+  </div>
+{% endblock %}

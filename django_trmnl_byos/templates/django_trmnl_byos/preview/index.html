@@ -3,7 +3,7 @@
   <section class="mb-12">
     <div class="mb-4 flex items-baseline justify-between gap-4">
       <h2 class="text-2xl font-bold tracking-tight">Dashboards</h2>
-      <a class="link text-sm" href="{% url 'admin:django_trmnl_byos_dashboard_add' %}">New dashboard</a>
+      <a class="button button-primary" href="{% url 'django_trmnl_byos:editor-dashboard-new' %}">New dashboard</a>
     </div>
     <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
       {% for dashboard in dashboards %}
@@ -27,7 +27,7 @@
                 <a href="{% url 'django_trmnl_byos:preview-dashboard' dashboard.pk %}?profile=og_2bit">2-bit</a>
                 <a href="{% url 'django_trmnl_byos:preview-dashboard' dashboard.pk %}?profile=x">X</a>
               </div>
-              <a class="link text-sm" href="{% url 'admin:django_trmnl_byos_dashboard_change' dashboard.pk %}">Edit</a>
+              <a class="link text-sm" href="{% url 'django_trmnl_byos:editor-dashboard' dashboard.pk %}">Edit</a>
             </div>
           </div>
         </article>

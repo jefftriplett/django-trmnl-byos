@@ -1,0 +1,76 @@
+{% extends "django_trmnl_byos/preview/base.html" %}
+{% block title %}{% if instance.pk %}{{ instance.name }}{% else %}New {{ plugin.name }}{% endif %} · django-trmnl-byos{% endblock %}
+{% block content %}
+  <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <p class="eyebrow mb-1"><a class="link" href="{% url 'django_trmnl_byos:editor-plugins' %}">Plugins</a> · {{ plugin.name }}</p>
+      <h2 class="text-3xl font-bold tracking-tight">{% if instance.pk %}{{ instance.name }}{% else %}New {{ plugin.name }}{% endif %}</h2>
+      <p class="mt-1 text-muted">{{ plugin.description }}</p>
+    </div>
+    {% if instance.pk %}
+      <div class="flex flex-wrap items-center gap-3">
+        {% if plugin.polls %}
+          <form method="post" action="{% url 'django_trmnl_byos:editor-plugin-refresh' instance.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="button">Refresh data now</button>
+          </form>
+        {% endif %}
+        <a class="link text-sm" href="{% url 'django_trmnl_byos:editor-plugin-delete' instance.pk %}">Delete</a>
+      </div>
+    {% endif %}
+  </div>
+
+  {% if instance.last_error %}
+    <p class="errorlist">Last refresh failed: {{ instance.last_error }}</p>
+  {% endif %}
+
+  <form method="post" class="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+    {% csrf_token %}
+    <section class="card">
+      <div class="card-title">Settings</div>
+      <div class="space-y-5 p-5">
+        {% include "django_trmnl_byos/preview/_field.html" with field=form.name %}
+        {{ options.non_field_errors }}
+        {% for field in options %}
+          {% include "django_trmnl_byos/preview/_field.html" %}
+        {% endfor %}
+        {% if show_data %}
+          {% include "django_trmnl_byos/preview/_field.html" with field=data_form.merge_variables %}
+        {% endif %}
+        <details>
+          <summary class="cursor-pointer text-sm font-semibold">Advanced</summary>
+          <div class="mt-4">{% include "django_trmnl_byos/preview/_field.html" with field=form.refresh_interval %}</div>
+        </details>
+        <div class="flex items-center gap-3 pt-2">
+          <button type="submit" class="button button-primary">{% if instance.pk %}Save{% else %}Create plugin{% endif %}</button>
+          <a class="link text-sm" href="{% url 'django_trmnl_byos:editor-plugins' %}">Cancel</a>
+        </div>
+      </div>
+    </section>
+
+    <aside class="space-y-6">
+      {% if instance.pk %}
+        <section class="card">
+          <div class="card-title">On dashboards</div>
+          <div class="p-4 text-sm">
+            {% for dashboard in dashboards %}
+              <a class="link block" href="{% url 'django_trmnl_byos:editor-dashboard' dashboard.pk %}">{{ dashboard.name }}</a>
+            {% empty %}
+              <p class="text-muted">Not on any dashboard yet. <a class="link" href="{% url 'django_trmnl_byos:editor-dashboard-new' %}">Create one</a>.</p>
+            {% endfor %}
+          </div>
+        </section>
+        {% if not plugin.polls %}
+          <section class="card">
+            <div class="card-title">Webhook</div>
+            <div class="space-y-2 p-4 text-sm">
+              <p class="text-muted">POST JSON to update this plugin's data:</p>
+              <code class="code block">{{ webhook_url }}</code>
+              <code class="code block">{"merge_variables": {"message": "Hi"}}</code>
+            </div>
+          </section>
+        {% endif %}
+      {% endif %}
+    </aside>
+  </form>
+{% endblock %}

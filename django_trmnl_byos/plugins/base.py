@@ -30,8 +30,10 @@ class Plugin:
     template_name = None
     polls = False
     default_settings = {}
-    # Per-setting help text, shown in the admin.
+    # Per-setting help text, shown in the editor and admin.
     help = {}
+    # Settings limited to a few values, shown as a dropdown: {"units": ["fahrenheit", "celsius"]}.
+    choices = {}
 
     def settings_for(self, instance):
         return {**self.default_settings, **(instance.settings or {})}
@@ -116,7 +118,18 @@ def render_markup(source, context, engine="django", shared=""):
     return template.render(Context(context))
 
 
+USER_AGENT = "django-trmnl-byos"
+MAX_RESPONSE_BYTES = 5_000_000
+
+
 def fetch_json(url, headers=None):
-    request = urllib.request.Request(url, headers={"User-Agent": "django-trmnl", **(headers or {})})
+    request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT, **(headers or {})})
     with urllib.request.urlopen(request, timeout=conf.get("HTTP_TIMEOUT")) as response:
         return json.load(response)
+
+
+def fetch_bytes(url, headers=None):
+    """GET a URL and return its body (capped at 5 MB). Raises on HTTP and network errors."""
+    request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT, **(headers or {})})
+    with urllib.request.urlopen(request, timeout=conf.get("HTTP_TIMEOUT")) as response:
+        return response.read(MAX_RESPONSE_BYTES)

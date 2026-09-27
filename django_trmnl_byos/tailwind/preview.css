@@ -67,6 +67,20 @@
   .code {
     @apply bg-paper px-1.5 py-0.5 font-mono text-[0.8em] break-all;
   }
+  .field input:not([type="checkbox"], [type="radio"], [type="hidden"]),
+  .field select,
+  .field textarea {
+    @apply w-full rounded-sm border border-ink bg-white px-3 py-1.5 text-ink focus:outline-2 focus:outline-offset-2 focus:outline-ink;
+  }
+  .field textarea {
+    @apply font-mono text-sm;
+  }
+  .field input[type="checkbox"] {
+    @apply size-4 accent-ink;
+  }
+  .errorlist {
+    @apply mb-3 border-l-4 border-danger bg-white px-3 py-2 text-sm text-danger;
+  }
   .dot {
     @apply inline-block size-2.5 rounded-full;
   }

@@ -1,0 +1,20 @@
+{% if not items %}
+  {% include "django_trmnl_byos/plugins/_empty.html" with message="No headlines yet." %}
+{% else %}
+  <div class="layout layout--col layout--top layout--stretch-x gap--small">
+    {% if size == 'full' or size == 'half_vertical' %}<span class="title title--small" data-clamp="1">{{ heading }}</span>{% endif %}
+    <div class="columns" data-overflow-max-cols="{% if size == 'full' %}2{% else %}1{% endif %}">
+      <div class="column">
+        {% for item in items %}
+          <div class="item">
+            <div class="meta"></div>
+            <div class="content">
+              <span class="title title--small" data-clamp="2">{{ item.title }}</span>
+              {% if item.date_label %}<span class="description">{{ item.date_label }}</span>{% endif %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+{% endif %}
