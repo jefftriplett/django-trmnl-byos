@@ -34,7 +34,7 @@ dev = [
 ]
 project = [
     "django-browser-reload>=1.21.0",
-    "django-health-check>=4.0.0",
+    "django-health-check==4.3.0",
     "django-mcpz>=1.0.5",
     "django-prodserver[gunicorn]>=3.0.0",
     "django-tailwind-cli>=4.8.1",
