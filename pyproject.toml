@@ -12,6 +12,7 @@ classifiers = [
     "Programming Language :: Python :: 3",
 ]
 dependencies = [
+    "blessed",
     "django>=6.0,<6.1",
     "django-q2>=1.8",
     "icalendar>=7.0",
