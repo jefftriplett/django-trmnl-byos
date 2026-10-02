@@ -22,5 +22,20 @@ urlpatterns = [
     path("", include("django_trmnl_byos.urls")),
 ]
 
+if settings.MCP_ENABLED:
+    from config.mcp import server as mcp_server
+
+    # Exactly /mcp, no trailing slash: it's the URL MCP clients (Claude's connector
+    # among them) call, and a POST can't follow a redirect. Prepended so the app's
+    # root-level routes below can't shadow it.
+    urlpatterns = [
+        path("mcp", mcp_server, name="mcp"),
+        # OAuth for Claude Code, Claude.ai and ChatGPT: the authorization server's
+        # endpoints, and its discovery documents under /.well-known/
+        path("oauth/", include("django_mcpz.oauth.urls")),
+        path("", include("django_mcpz.oauth.wellknown")),
+        *urlpatterns,
+    ]
+
 if settings.DEBUG:
     urlpatterns += [path("__reload__/", include("django_browser_reload.urls"))]

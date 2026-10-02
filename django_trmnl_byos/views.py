@@ -13,8 +13,8 @@ from django.views.decorators.http import require_GET, require_http_methods
 from . import conf, images
 from .devices import MODEL_ALIASES
 from .models import Device, DeviceLog, Playlist, PluginInstance, Render, normalize_mac
-from .services import next_item
-from .tasks import dashboards_for_instance, enqueue_render
+from .services import MergeError, next_item, update_merge_variables
+from .tasks import enqueue_render
 
 logger = logging.getLogger(__name__)
 
@@ -326,27 +326,6 @@ def placeholder(request, friendly_id, state, extension):
     return HttpResponse(data, content_type=profile.content_type)
 
 
-def deep_merge(existing, incoming):
-    merged = dict(existing)
-    for key, value in incoming.items():
-        if isinstance(value, dict) and isinstance(merged.get(key), dict):
-            merged[key] = deep_merge(merged[key], value)
-        else:
-            merged[key] = value
-    return merged
-
-
-def stream_merge(existing, incoming, limit):
-    merged = dict(existing)
-    for key, value in incoming.items():
-        if isinstance(value, list) and isinstance(merged.get(key), list):
-            value = merged[key] + value
-        if isinstance(value, list) and limit:
-            value = value[-limit:]
-        merged[key] = value
-    return merged
-
-
 @csrf_exempt
 @require_http_methods(["GET", "POST"])
 def webhook(request, uuid):
@@ -365,23 +344,10 @@ def webhook(request, uuid):
     if not isinstance(variables, dict):
         return JsonResponse({"error": "Send an object under merge_variables"}, status=400)
 
-    strategy = payload.get("merge_strategy", "replace")
-    if strategy == "deep_merge":
-        instance.merge_variables = deep_merge(instance.merge_variables or {}, variables)
-    elif strategy == "stream":
-        try:
-            limit = int(payload.get("stream_limit") or 0)
-        except (TypeError, ValueError):
-            return JsonResponse({"error": "stream_limit must be a number"}, status=400)
-        instance.merge_variables = stream_merge(instance.merge_variables or {}, variables, limit)
-    elif strategy == "replace":
-        instance.merge_variables = variables
-    else:
-        return JsonResponse({"error": f"Unknown merge_strategy {strategy!r}"}, status=400)
-
-    if len(json.dumps(instance.merge_variables)) > conf.get("WEBHOOK_MAX_BYTES"):
-        return JsonResponse({"error": "Merged payload too large"}, status=413)
-    instance.save(update_fields=["merge_variables", "updated_at"])
-    enqueue_render(dashboards_for_instance(instance))
+    try:
+        update_merge_variables(
+            instance, variables, payload.get("merge_strategy", "replace"), payload.get("stream_limit")
+        )
+    except MergeError as error:
+        return JsonResponse({"error": str(error)}, status=error.status)
     return JsonResponse({"message": "Updated", "merge_variables": instance.merge_variables})
-

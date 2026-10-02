@@ -36,6 +36,8 @@ INSTALLED_APPS = [
 
 INSTALLED_APPS += [
     "django_browser_reload",
+    "django_mcpz",
+    "django_mcpz.oauth",
     "django_prodserver",
     "django_q",
     "django_tailwind_cli",
@@ -109,7 +111,6 @@ STATIC_URL = "/static/"
 # directory, so the compiled file ships with the package and host projects need no Tailwind.
 STATICFILES_DIRS = [BASE_DIR / "django_trmnl_byos" / "static"]
 
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Parse cache URLs, e.g. "redis://localhost:6379/0"
 CACHES = {"default": env.dj_cache_url("CACHE_URL", default="locmem://")}
@@ -164,3 +165,15 @@ LOGGING = {
     "handlers": {"console": {"class": "logging.StreamHandler"}},
     "loggers": {"django_trmnl_byos": {"handlers": ["console"], "level": "INFO"}},
 }
+
+# MCP server (django-mcpz, routed at /mcp by config.urls; see config/mcp.py)
+
+MCP_ENABLED = env.bool("MCP_ENABLED", default=True)
+# Optional shared secret: clients send `Authorization: Bearer <token>`. Empty turns
+# the shared token off - it never opens the endpoint. Staff can always connect
+# through OAuth instead (Claude Code, Claude.ai, ChatGPT).
+# Generate one with: python -c "import secrets; print(secrets.token_urlsafe(32))"
+MCP_AUTH_TOKEN = env.str("MCP_AUTH_TOKEN", default="")
+
+# The OAuth consent page asks staff to log in; this project's login is the admin's.
+LOGIN_URL = "admin:login"
