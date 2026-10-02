@@ -22,7 +22,9 @@ serves screens built from plugins, playlists, and **fluid mashups**.
   3.3.2. It waits for the framework runtime (`TRMNL_PLUGINS_READY`) before
   capturing, so overflow, clamping, and value fitting have finished. If the
   pixels haven't changed, the filename stays the same and the device skips
-  the redraw.
+  the redraw. The Framework's CSS, JS, fonts and icons are served from a local
+  copy (`manage.py trmnl_fetch_assets`, run at Docker build time), so renders
+  never download them.
 - **Playlists** with ordering, per-item refresh rates, time windows
   (including windows that cross midnight), and weekdays.
 - **Staff preview pages** show the live HTML next to the rendered device
@@ -38,8 +40,9 @@ Requires Python 3.12+ and [uv](https://docs.astral.sh/uv/).
 
 ```sh
 uv sync                                   # install
-uv run playwright install chromium        # one-time browser download
+uv run playwright install --only-shell chromium   # one-time: Chromium's headless shell
 uv run python manage.py migrate
+uv run python manage.py trmnl_fetch_assets   # local copy of the Framework CSS/JS/fonts (optional; else fetched on first render)
 uv run python manage.py createsuperuser
 uv run python manage.py trmnl_demo        # demo plugins, dashboards, playlist + a simulated device
 ```
@@ -192,6 +195,7 @@ every option and its default.
 | Setting | Default |
 |---|---|
 | `FRAMEWORK_CSS_URL` / `FRAMEWORK_JS_URL` | TRMNL Framework 3.3.2 (pinned) |
+| `ASSET_CACHE_DIR` | `BASE_DIR / "trmnl_assets"`: the local copy of the Framework CSS, JS, fonts and icons that renders are served from |
 | `AUTO_PROVISION` | `True`: unknown MACs get created on `/api/setup` |
 | `DEFAULT_PROFILE` | `"og"` |
 | `DEFAULT_REFRESH_RATE` | `900` seconds |

@@ -36,12 +36,13 @@ RUN --mount=type=cache,target=/root/.cache/uv \
         --no-editable \
         --no-install-project
 
-# Chromium plus the system libraries and fonts it needs, for rendering TRMNL screens
+# Chromium's headless shell (all Playwright launches headless) plus the system libraries and
+# fonts it needs, for rendering TRMNL screens. --only-shell skips the full browser, which is never used.
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     --mount=type=bind,source=uv.lock,target=uv.lock \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    uv run --frozen --no-sync playwright install --with-deps chromium
+    uv run --frozen --no-sync playwright install --with-deps --only-shell chromium
 
 # ------------------------------------------------------------
 # Stage 2: Release - Final production image
@@ -67,6 +68,10 @@ RUN DATABASE_URL=sqlite://:memory: SECRET_KEY=build-key uv run --no-sync -m mana
 
 # Collect static files for production serving
 RUN DATABASE_URL=sqlite://:memory: SECRET_KEY=build-key uv run --no-sync -m manage collectstatic --noinput
+
+# Keep a local copy of the TRMNL Framework CSS, JS, fonts and icons, so renders never
+# download them (see django_trmnl_byos/assets.py)
+RUN DATABASE_URL=sqlite://:memory: SECRET_KEY=build-key uv run --no-sync -m manage trmnl_fetch_assets
 
 CMD ["/src/start-web.sh"]
 
