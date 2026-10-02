@@ -60,6 +60,10 @@ RUN DATABASE_URL=sqlite://:memory: SECRET_KEY=build-key uv run --no-sync -m mana
 # Collect static files for production serving
 RUN DATABASE_URL=sqlite://:memory: SECRET_KEY=build-key uv run --no-sync -m manage collectstatic --noinput
 
+# Keep a local copy of the TRMNL Framework CSS, JS, fonts and icons, so renders never
+# download them (see django_trmnl_byos/assets.py)
+RUN DATABASE_URL=sqlite://:memory: SECRET_KEY=build-key uv run --no-sync -m manage trmnl_fetch_assets
+
 CMD ["/src/start-web.sh"]
 
 # Worker stage

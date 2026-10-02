@@ -60,7 +60,7 @@ jobs:
 
       - name: Install Chromium for the render tests
         run: |
-          uv run --locked playwright install --with-deps chromium
+          uv run --locked playwright install --with-deps --only-shell chromium
 
       - name: Render tests (real Chromium)
         env:
