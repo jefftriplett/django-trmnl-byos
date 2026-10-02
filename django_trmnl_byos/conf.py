@@ -8,6 +8,9 @@ DEFAULTS = {
     # Pinned TRMNL Framework assets. ``latest`` moves; a pinned version renders the same tomorrow.
     "FRAMEWORK_CSS_URL": f"https://trmnl.com/css/{FRAMEWORK_VERSION}/plugins.min.css",
     "FRAMEWORK_JS_URL": f"https://trmnl.com/js/{FRAMEWORK_VERSION}/plugins.min.js",
+    # Where the renderer keeps its local copy of the Framework assets (CSS, JS, fonts,
+    # icons). Default: "trmnl_assets" in BASE_DIR. Fill it with ``manage.py trmnl_fetch_assets``.
+    "ASSET_CACHE_DIR": None,
     # Create a Device the first time an unknown MAC address calls /api/setup.
     "AUTO_PROVISION": True,
     # Profile given to auto-provisioned devices (see django_trmnl_byos.devices.PROFILES).

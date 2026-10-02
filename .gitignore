@@ -10,3 +10,6 @@ dist/
 byos_django-git/
 .env
 CLAUDE.md
+
+# Local copy of the TRMNL Framework assets (manage.py trmnl_fetch_assets)
+trmnl_assets/

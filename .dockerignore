@@ -5,3 +5,4 @@ compose.override.yml
 Dockerfile
 justfile
 LICENSE
+trmnl_assets
