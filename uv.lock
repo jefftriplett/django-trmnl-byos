@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.12"
 
 [[package]]
@@ -201,8 +201,9 @@ wheels = [
 
 [[package]]
 name = "django-trmnl-byos"
-version = "2026.10.1"
+version = "2026.10.2"
 source = { virtual = "." }
+default-groups = ["dev", "project"]
 dependencies = [
     { name = "blessed" },
     { name = "django" },
