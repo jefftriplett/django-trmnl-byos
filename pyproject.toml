@@ -1,6 +1,6 @@
 [project]
 name = "django-trmnl-byos"
-version = "0.1.0"
+version = "2026.10.1"
 description = "Drive TRMNL e-ink dashboards from Django: BYOS device API, plugins, playlists, and fluid mashups."
 readme = "README.md"
 license = "MIT"
@@ -91,3 +91,19 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 fixable = ["A", "B", "C", "D", "E", "F"]
 ignore = ["E501", "E741"]
 select = ["E", "F"]
+
+[tool.bumpver]
+commit = true
+commit_message = ":bookmark: bump version {old_version} -> {new_version}"
+current_version = "2026.10.1"
+push = false  # disabled for GitHub Actions
+tag = true
+version_pattern = "YYYY.MM.INC1"
+
+[tool.bumpver.file_patterns]
+"django_trmnl_byos/__init__.py" = [
+  '__version__ = "{version}"'
+]
+"pyproject.toml" = [
+  'version = "{version}"'
+]
