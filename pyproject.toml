@@ -23,6 +23,8 @@ dependencies = [
 
 [project.optional-dependencies]
 liquid = ["python-liquid>=2.0"]
+# For django_trmnl_byos.mcp_tools: add the tools to a django-mcpz MCP server.
+mcp = ["django-mcpz>=1.0.5", "msgspec>=0.19"]
 
 [dependency-groups]
 dev = [
@@ -33,9 +35,11 @@ dev = [
 project = [
     "django-browser-reload>=1.21.0",
     "django-health-check>=4.0.0",
+    "django-mcpz>=1.0.5",
     "django-prodserver[gunicorn]>=3.0.0",
     "django-tailwind-cli>=4.8.1",
     "environs[django]>=15.2.0",
+    "msgspec>=0.19",
     "psycopg[binary]>=3.3.6",
     "whitenoise>=6.12.0",
 ]

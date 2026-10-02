@@ -1,10 +1,12 @@
 """Playlist rotation, data refreshes and the render loop."""
 
+import json
 import logging
 
 from django.db.models import F
 from django.utils import timezone
 
+from . import conf
 from .models import Dashboard, Device, PluginInstance
 
 logger = logging.getLogger(__name__)
@@ -89,3 +91,70 @@ def run_once(renderer, force=False):
             logger.exception("Rendering %s for %s/%s failed", dashboard, profile, orientation)
             failed += 1
     return {"targets": len(targets), "refreshed": refreshed, "rendered": rendered, "failed": failed}
+
+
+# --- Plugin data (the webhook and the MCP update tool share this) -------------
+
+
+def deep_merge(existing, incoming):
+    merged = dict(existing)
+    for key, value in incoming.items():
+        if isinstance(value, dict) and isinstance(merged.get(key), dict):
+            merged[key] = deep_merge(merged[key], value)
+        else:
+            merged[key] = value
+    return merged
+
+
+def stream_merge(existing, incoming, limit):
+    merged = dict(existing)
+    for key, value in incoming.items():
+        if isinstance(value, list) and isinstance(merged.get(key), list):
+            value = merged[key] + value
+        if isinstance(value, list) and limit:
+            value = value[-limit:]
+        merged[key] = value
+    return merged
+
+
+MERGE_STRATEGIES = ("replace", "deep_merge", "stream")
+
+
+class MergeError(ValueError):
+    """Bad merge input; ``status`` is the HTTP status the webhook answers with."""
+
+    def __init__(self, message, status=400):
+        super().__init__(message)
+        self.status = status
+
+
+def update_merge_variables(instance, variables, strategy="replace", stream_limit=None):
+    """Merge ``variables`` into an instance's data, save it, and queue its dashboards.
+
+    Same semantics as TRMNL's private plugin webhook: ``replace`` swaps the data,
+    ``deep_merge`` merges nested objects, and ``stream`` appends to lists, keeping
+    the last ``stream_limit`` items.
+    """
+    from .tasks import dashboards_for_instance, enqueue_render
+
+    if not isinstance(variables, dict):
+        raise MergeError("Send an object under merge_variables")
+    if strategy == "deep_merge":
+        merged = deep_merge(instance.merge_variables or {}, variables)
+    elif strategy == "stream":
+        try:
+            limit = int(stream_limit or 0)
+        except (TypeError, ValueError):
+            raise MergeError("stream_limit must be a number") from None
+        merged = stream_merge(instance.merge_variables or {}, variables, limit)
+    elif strategy == "replace":
+        merged = variables
+    else:
+        raise MergeError(f"Unknown merge_strategy {strategy!r}")
+
+    if len(json.dumps(merged)) > conf.get("WEBHOOK_MAX_BYTES"):
+        raise MergeError("Merged payload too large", status=413)
+    instance.merge_variables = merged
+    instance.save(update_fields=["merge_variables", "updated_at"])
+    enqueue_render(dashboards_for_instance(instance))
+    return instance

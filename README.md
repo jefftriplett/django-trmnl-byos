@@ -27,6 +27,8 @@ serves screens built from plugins, playlists, and **fluid mashups**.
   (including windows that cross midnight), and weekdays.
 - **Staff preview pages** show the live HTML next to the rendered device
   image, for any profile and orientation.
+- **MCP server** at `/mcp` (django-mcpz), so Claude and other MCP clients can
+  see devices, dashboards and playlists, update plugin data, and queue renders.
 
 See [NOTES.md](NOTES.md) for the research behind it (device API contract, framework structure, fluid mashup rules).
 
@@ -200,7 +202,54 @@ every option and its default.
 
 In the `config/` project, the environment variables `TRMNL_RENDER_INLINE`,
 `TRMNL_BASE_URL`, `PLAYWRIGHT_WS_ENDPOINT`, `TIME_ZONE`, `ALLOWED_HOSTS`,
-and `SECRET_KEY` set these.
+and `SECRET_KEY` set these. `MCP_ENABLED` and `MCP_AUTH_TOKEN` control the
+[MCP server](#mcp-server).
+
+## MCP server
+
+The `config/` project serves an [MCP](https://modelcontextprotocol.io) server
+at **`/mcp`**, built on [django-mcpz](https://django-mcpz.readthedocs.io/). Use
+that exact URL: there is no trailing slash, and `/mcp/` is not redirected,
+because MCP clients POST and a POST can't follow a redirect.
+
+| Tool | What it does |
+|------|--------------|
+| `list_devices` | Devices with telemetry (battery, RSSI, firmware, last seen) and the render each is showing |
+| `list_dashboards` | Dashboards, the plugin in each cell, and the latest render per profile/orientation |
+| `list_playlists` | Playlists and their items, time windows and weekdays |
+| `list_plugin_instances` / `get_plugin_instance` | Plugin instances, their settings and current data |
+| `update_plugin_data` | Same as posting to the instance's webhook (`replace`, `deep_merge`, `stream`), then queues renders |
+| `queue_render` | Queue a render of a dashboard for every profile that shows it |
+
+**Who can connect.** Every request needs a credential; there is no open mode.
+
+- **Staff, via OAuth:** Claude Code, Claude.ai and ChatGPT sign in through
+  `/oauth/authorize` (django-mcpz's authorization server) with a staff
+  account. Add `https://<your host>/mcp` as a custom connector and approve it.
+  Non-staff accounts are refused.
+- **A shared token:** set `MCP_AUTH_TOKEN` and send
+  `Authorization: Bearer <token>`. Generate one with
+  `python -c "import secrets; print(secrets.token_urlsafe(32))"`. Leaving it
+  empty turns token access off; it never opens the endpoint.
+
+```sh
+claude mcp add --transport http trmnl https://<your host>/mcp \
+  --header "Authorization: Bearer $MCP_AUTH_TOKEN"
+```
+
+Set `MCP_ENABLED=false` to stop routing `/mcp` and `/oauth/`.
+
+**In your own project**, install the `mcp` extra and add the tools to your own
+django-mcpz server, with whatever auth you choose:
+
+```python
+from django_mcpz.server import MCPServer
+from django_trmnl_byos.mcp_tools import register_tools
+
+server = MCPServer(name="my-trmnl", version="1.0", auth=my_auth)
+register_tools(server)
+urlpatterns = [path("mcp", server), ...]
+```
 
 ## Using it in your own project
 
@@ -216,7 +265,8 @@ webhook URLs use unguessable UUIDs, the same model trmnl.com uses. Auto
 provisioning means anything that can reach the server can register a
 device, which is fine on a home network. Turn off `AUTO_PROVISION`, or put
 the server behind a VPN or proxy, before exposing it more widely. Preview
-pages require a staff login.
+pages require a staff login. `/mcp` requires `MCP_AUTH_TOKEN` or a staff
+OAuth sign-in (see [MCP server](#mcp-server)).
 
 ## License
 
