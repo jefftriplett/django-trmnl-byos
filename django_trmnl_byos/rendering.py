@@ -17,6 +17,10 @@ logger = logging.getLogger(__name__)
 
 READY = "() => window.TRMNL_PLUGINS_READY === true"
 
+# Reaching a remote browser should be near-instant on the compose network. Without
+# a timeout a dead browser container would hang the render until the Q2 task timeout.
+CONNECT_TIMEOUT_MS = 10_000
+
 
 class Renderer:
     """Keeps one browser open across renders. Use as a context manager.
@@ -53,7 +57,7 @@ class Renderer:
         self._playwright = sync_playwright().start()
         endpoint = conf.get("PLAYWRIGHT_WS_ENDPOINT")
         if endpoint:
-            self._browser = self._playwright.chromium.connect(endpoint)
+            self._browser = self._playwright.chromium.connect(endpoint, timeout=CONNECT_TIMEOUT_MS)
         else:
             self._browser = self._playwright.chromium.launch()
 
