@@ -138,15 +138,15 @@ Q_CLUSTER = {
     "workers": env.int("Q_WORKERS", default=1),
 }
 
-# Django Prodserver settings (manage.py prodserver web|worker)
+# Django Prodserver settings (manage.py server web, manage.py worker worker)
 
 PRODUCTION_PROCESSES = {
     "web": {
-        "BACKEND": "django_prodserver.backends.gunicorn.GunicornServer",
+        "BACKEND": "django_prodserver.backends.servers.gunicorn.GunicornServer",
         "ARGS": {"bind": "0.0.0.0:8000", "workers": "2"},
     },
     "worker": {
-        "BACKEND": "django_prodserver.backends.django_q2.DjangoQ2Worker",
+        "BACKEND": "django_prodserver.backends.workers.django_q2.DjangoQ2Worker",
         "ARGS": {},
     },
 }
