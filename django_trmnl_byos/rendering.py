@@ -7,7 +7,7 @@ from urllib.parse import urlsplit
 
 from django.utils import timezone
 
-from . import conf
+from . import assets, conf
 from .compose import compose
 from .devices import get_profile
 from .images import to_device_image
@@ -25,8 +25,10 @@ CONNECT_TIMEOUT_MS = 10_000
 class Renderer:
     """Keeps one browser open across renders. Use as a context manager.
 
-    GET responses from the framework host (the ~15 MB stylesheet, fonts, JS)
-    are cached in memory, so only the first render pays to download them.
+    GET requests to the framework host (the ~15 MB stylesheet, fonts, JS, icons)
+    are answered from memory, then from the on-disk copy in ``assets`` (filled at
+    build time by ``trmnl_fetch_assets``), and only fetched from the network
+    when neither has them; a fetched file is saved to disk for next time.
 
     Playwright's sync API runs an event loop in its thread, and Django refuses
     ORM calls from a thread with a running loop. So every browser call runs on
@@ -38,10 +40,7 @@ class Renderer:
         self._playwright = None
         self._browser = None
         self._cache = {}
-        self._cache_hosts = {
-            urlsplit(conf.get("FRAMEWORK_CSS_URL")).netloc,
-            urlsplit(conf.get("FRAMEWORK_JS_URL")).netloc,
-        }
+        self._cache_hosts = assets.framework_hosts()
 
     def __enter__(self):
         self._thread.submit(self._start).result()
@@ -72,6 +71,9 @@ class Renderer:
         if request.method != "GET" or urlsplit(request.url).netloc not in self._cache_hosts:
             return route.continue_()
         cached = self._cache.get(request.url)
+        if cached is None and (body := assets.read(request.url)) is not None:
+            cached = {"status": 200, "headers": {"content-type": assets.content_type(request.url)}, "body": body}
+            self._cache[request.url] = cached
         if cached is None:
             response = route.fetch()
             # body() is already decoded, so drop headers describing the compressed transfer.
@@ -83,6 +85,10 @@ class Renderer:
             cached = {"status": response.status, "headers": headers, "body": response.body()}
             if response.ok:
                 self._cache[request.url] = cached
+                try:
+                    assets.write(request.url, cached["body"])
+                except OSError:
+                    logger.warning("Couldn't save %s to the asset cache", request.url, exc_info=True)
         route.fulfill(status=cached["status"], headers=cached["headers"], body=cached["body"])
 
     def screenshot(self, html, profile, orientation="landscape"):
