@@ -61,7 +61,7 @@ RUN DATABASE_URL=sqlite://:memory: SECRET_KEY=build-key uv run --frozen -m manag
 RUN DATABASE_URL=sqlite://:memory: SECRET_KEY=build-key uv run --frozen -m manage trmnl_fetch_assets
 
 
-HEALTHCHECK --interval=60s --timeout=30s --start-period=30s --retries=3 \
+HEALTHCHECK --interval=30s --start-interval=3s --start-period=60s --timeout=10s --retries=3 \
     CMD ["/src/healthcheck-worker.sh"]
 
 CMD ["/src/start-worker.sh"]
