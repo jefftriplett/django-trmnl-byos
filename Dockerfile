@@ -6,7 +6,6 @@ FROM ghcr.io/astral-sh/uv:python3.14-bookworm-slim AS builder
 # Configure environment variables
 ENV UV_COMPILE_BYTECODE=1
 ENV UV_LINK_MODE=copy
-ENV PLAYWRIGHT_BROWSERS_PATH=/opt/playwright
 # Put the project venv OUTSIDE of /src/ so the docker-compose host bind
 # mount (`.:/src:cache`) cannot shadow it at runtime. Without this,
 # `uv run` in the compose container finds no .venv and rebuilds it on
@@ -35,13 +34,6 @@ RUN --mount=type=cache,target=/root/.cache/uv \
         --frozen \
         --no-editable \
         --no-install-project
-
-# Chromium plus the system libraries and fonts it needs, for rendering TRMNL screens
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt,sharing=locked \
-    --mount=type=bind,source=uv.lock,target=uv.lock \
-    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    uv run --frozen --no-sync playwright install --with-deps chromium
 
 # ------------------------------------------------------------
 # Stage 2: Release - Final production image

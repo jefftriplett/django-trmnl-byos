@@ -1,0 +1,29 @@
+# ------------------------------------------------------------
+# Browser: Playwright's run-server. Renders connect to it over a websocket
+# (PLAYWRIGHT_WS_ENDPOINT) instead of launching Chromium inside the app image.
+# ------------------------------------------------------------
+
+# Must match the `playwright` pin in pyproject.toml exactly: a client/server
+# mismatch fails at the websocket handshake, not gracefully.
+# tests/test_browser.py fails if the two drift apart.
+ARG PLAYWRIGHT_VERSION=1.63.0
+
+FROM mcr.microsoft.com/playwright:v${PLAYWRIGHT_VERSION}-noble
+
+ARG PLAYWRIGHT_VERSION
+
+# The base image ships the browsers but not the Node package that serves
+# them. Installing it at build time means starting the container needs no
+# network; `npx -y` at boot would fetch it from npm on every start.
+RUN npm install --global "playwright@${PLAYWRIGHT_VERSION}" \
+    && npm cache clean --force
+
+COPY start-browser.sh healthcheck-browser.sh /src/
+
+USER pwuser
+WORKDIR /home/pwuser
+
+HEALTHCHECK --interval=30s --start-interval=1s --start-period=30s --timeout=5s --retries=3 \
+    CMD ["/src/healthcheck-browser.sh"]
+
+CMD ["/src/start-browser.sh"]

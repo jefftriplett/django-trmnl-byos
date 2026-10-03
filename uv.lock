@@ -1,5 +1,5 @@
 version = 1
-revision = 5
+revision = 3
 requires-python = ">=3.12"
 
 [[package]]
@@ -231,7 +231,6 @@ wheels = [
 name = "django-trmnl-byos"
 version = "2026.10.4"
 source = { virtual = "." }
-default-groups = ["dev", "project"]
 dependencies = [
     { name = "blessed" },
     { name = "django" },
@@ -278,7 +277,7 @@ requires-dist = [
     { name = "icalendar", specifier = ">=7.0" },
     { name = "msgspec", marker = "extra == 'mcp'", specifier = ">=0.19" },
     { name = "pillow", specifier = ">=11.0" },
-    { name = "playwright", specifier = ">=1.50" },
+    { name = "playwright", specifier = "==1.63.0" },
     { name = "python-liquid", marker = "extra == 'liquid'", specifier = ">=2.0" },
     { name = "recurring-ical-events", specifier = ">=3.8" },
 ]
