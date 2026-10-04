@@ -229,7 +229,7 @@ wheels = [
 
 [[package]]
 name = "django-trmnl-byos"
-version = "2026.10.12"
+version = "2026.10.13"
 source = { virtual = "." }
 default-groups = ["dev", "project"]
 dependencies = [
