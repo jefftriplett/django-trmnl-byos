@@ -20,6 +20,9 @@ class DeviceProfile:
     short_name: str = ""
     # For panels without a framework device class: set the screen size directly.
     override_size: bool = False
+    # Colour panels: the RGB inks the panel can show. When set, images keep their
+    # colour and are snapped to these inks (an indexed PNG) instead of grayscale.
+    palette: tuple[tuple[int, int, int], ...] = ()
 
     def css_size(self, orientation="landscape"):
         if orientation == "portrait":
@@ -101,6 +104,23 @@ PROFILES = {
             short_name="400×300",
             override_size=True,
         ),
+        DeviceProfile(
+            key="color_400x300",
+            name="Colour 400×300 (black/white/yellow/red, e.g. Zectrix Note 4C)",
+            width=400,
+            height=300,
+            pixel_ratio=1,
+            bit_depth=2,
+            size_class="sm",
+            # 1-bit classes so the framework draws its grays as black/white
+            # patterns; a BWYR panel has no gray ink. Colours in the markup pass through.
+            screen_classes=("screen--sm", "screen--1bit"),
+            image_format="png",
+            short_name="400×300 colour",
+            override_size=True,
+            # The firmware maps each palette entry to the nearest ink (GetBWYRPixel).
+            palette=((0, 0, 0), (255, 255, 255), (255, 255, 0), (255, 0, 0)),
+        ),
     ]
 }
 
@@ -115,6 +135,7 @@ MODEL_ALIASES = {
     "x": "x",
     "trmnl_x": "x",
     "zectrix_note4": "small_400x300",
+    "zectrix_note4c": "color_400x300",
 }
 
 
