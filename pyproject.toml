@@ -1,6 +1,6 @@
 [project]
 name = "django-trmnl-byos"
-version = "2026.10.13"
+version = "2026.10.14"
 description = "Drive TRMNL e-ink dashboards from Django: BYOS device API, plugins, playlists, and fluid mashups."
 readme = "README.md"
 license = "MIT"
@@ -99,7 +99,7 @@ select = ["E", "F"]
 [tool.bumpver]
 commit = true
 commit_message = ":bookmark: bump version {old_version} -> {new_version}"
-current_version = "2026.10.13"
+current_version = "2026.10.14"
 push = false  # disabled for GitHub Actions
 tag = true
 version_pattern = "YYYY.MM.INC1"
