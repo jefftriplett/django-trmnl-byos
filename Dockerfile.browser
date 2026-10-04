@@ -18,6 +18,15 @@ ARG PLAYWRIGHT_VERSION
 RUN npm install --global "playwright@${PLAYWRIGHT_VERSION}" \
     && npm cache clean --force
 
+# tini runs as PID 1 (prod doesn't start containers with --init). Without it,
+# Node is PID 1, which does two things wrong: it never reaps the Chromium
+# processes each session leaves behind, so zombies pile up until the
+# container's pid limit stops any new render; and it ignores SIGTERM, so
+# every stop waits out the timeout and gets SIGKILLed.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends tini \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY start-browser.sh healthcheck-browser.sh /src/
 
 USER pwuser
@@ -25,5 +34,7 @@ WORKDIR /home/pwuser
 
 HEALTHCHECK --interval=30s --start-interval=1s --start-period=30s --timeout=5s --retries=3 \
     CMD ["/src/healthcheck-browser.sh"]
+
+ENTRYPOINT ["/usr/bin/tini", "--"]
 
 CMD ["/src/start-browser.sh"]
