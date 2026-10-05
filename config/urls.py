@@ -6,6 +6,7 @@ from django.views.generic import RedirectView
 from health_check.views import HealthCheckView
 
 from django_trmnl_byos import __version__
+from config.views import VersionView
 
 
 def version(request):
@@ -15,6 +16,7 @@ def version(request):
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("apis/version/", version, name="version"),
+    path("version.txt", VersionView.as_view(), name="version-txt"),
     # Only the database check; the django-q2 worker is checked by healthcheck-worker.sh.
     path("health/", HealthCheckView.as_view(checks=["health_check.Database"]), name="health"),
     path("", RedirectView.as_view(pattern_name="django_trmnl_byos:preview-index"), name="home"),
